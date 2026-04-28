@@ -17,7 +17,7 @@ export async function createUser(data,session = null) {
  * @returns {Promise<Object>} - The user object if found, otherwise null
  */
 export async function getUserByEmail(email) {
-    const user = await userModel.findOne({ email });
+    const user = await userModel.findOne({ email }).select("+password");
     return user;
 }
 

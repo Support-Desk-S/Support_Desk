@@ -85,6 +85,6 @@ export const loginUser = async (email, password) => {
     if (!isMatch) {
         throw new AppError("Invalid email or password", 401);
     }
-    
+
     return user;
 }
