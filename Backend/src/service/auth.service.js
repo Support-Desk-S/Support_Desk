@@ -54,3 +54,37 @@ export const registerTenantWithAdmin = async (data) => {
         throw error;
     }
 };
+
+
+export const registerUser = async (data) => {
+    const { name, email, password, tenantId } = data;
+
+    const existingUser = await userDAO.getUserByEmail(email);
+    if (existingUser) {
+        throw new AppError("Email already in use. Please choose a different email.", 400);
+    }
+
+    const user = await userDAO.createUser({
+        name,
+        email,
+        password,
+        tenantId,
+        role: "agent",
+    });
+    return user;
+}
+
+export const loginUser = async (email, password) => {
+    const user = await userDAO.getUserByEmail(email);
+
+    if (!user) {
+        throw new AppError("Invalid email or password", 401);
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+        throw new AppError("Invalid email or password", 401);
+    }
+    
+    return user;
+}
