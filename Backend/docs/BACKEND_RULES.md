@@ -244,7 +244,7 @@ npm install
 # Development mode (with hot reload)
 npm run dev
 
-# Default port: 5000 (configure in config/config.js)
+# Default port: 3000
 ```
 
 ### Environment Variables
@@ -253,7 +253,7 @@ Create a `.env` file in the Backend directory:
 
 ```
 NODE_ENV=development
-PORT=5000
+PORT=3000
 MONGODB_URI=mongodb://localhost:27017/support-desk
 JWT_SECRET=your_secret_key
 ```
