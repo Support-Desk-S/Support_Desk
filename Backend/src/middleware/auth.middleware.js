@@ -36,8 +36,7 @@ export const isAdmin = (req, res, next) => {
 
 export const tenantMiddleware = (req, res, next) => {
   try {
-    // const tenantId = req.query.tenantId || req.params.tenantId;
-    const tenantId = req.user.tenantId;
+    const tenantId = req.query.tenantId || req.params.tenantId;
     
     if (!tenantId) {
       return res.status(400).json({ message: 'Tenant ID not provided' });

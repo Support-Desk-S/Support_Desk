@@ -61,9 +61,9 @@ export async function getAllUsersBySlug(slug) {
  * - Excludes password for security reasons
  */
 export const getUsersByTenant = async (tenantId) => {
-    return await User
-      .find({ tenantId })          // 🔒 Restrict to tenant users only
-      .select("-password");        // ❌ Never expose password
+    return await userModel
+      .find({ tenantId })          
+      .select("-password");        
   };
   
   
@@ -80,8 +80,39 @@ export const getUsersByTenant = async (tenantId) => {
    * - Critical for security in multi-tenant systems
    */
   export const getUserByIdAndTenant = async (userId, tenantId) => {
-    return await User.findOne({
-      _id: userId,         // 🎯 Target specific user
-      tenantId,            // 🔒 Ensure same tenant
+    return await userModel.findOne({
+      _id: userId,         
+      tenantId,            
     });
   };
+
+/**
+ * Count total users by tenant and role
+ *
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @param {string} role - User role (e.g., 'agent', 'admin')
+ * @returns {Promise<number>} Count of users with specified role
+ *
+ * @description
+ * - Used by admin dashboard to get agent count
+ * - Filters by tenantId and role for accurate statistics
+ */
+export const countUsersByTenantAndRole = async (tenantId, role) => {
+  return await userModel.countDocuments({ tenantId, role });
+};
+
+/**
+ * Count approved/unapproved users by tenant, role and approval status
+ *
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @param {string} role - User role (e.g., 'agent')
+ * @param {boolean} isApproved - Approval status
+ * @returns {Promise<number>} Count of users matching criteria
+ *
+ * @description
+ * - Used by admin dashboard to get approved agent count and pending approvals
+ * - Critical for multi-tenant admin statistics
+ */
+export const countUsersByTenantRoleAndApproval = async (tenantId, role, isApproved) => {
+  return await userModel.countDocuments({ tenantId, role, isApproved });
+};

@@ -2,7 +2,9 @@ import * as adminService from "../service/admin.service.js";
 
 export const getUsers = async (req, res, next) => {
   try {
-    const users = await adminService.getUsers(req.user);
+    const { tenantId } = req.user;
+
+    const users = await adminService.getUsers(tenantId);
 
     res.status(200).json({
       success: true,
@@ -18,11 +20,12 @@ export const approveUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const { isApproved } = req.body;
+    const { tenantId } = req.user;
 
     const user = await adminService.approveUser(
       userId,
       isApproved,
-      req.user
+      tenantId
     );
 
     res.status(200).json({
@@ -39,11 +42,13 @@ export const updateUserRole = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const { role } = req.body;
+    const { tenantId, id: adminId } = req.user;
 
     const user = await adminService.updateUserRole(
       userId,
       role,
-      req.user
+      tenantId,
+      adminId
     );
 
     res.status(200).json({
@@ -58,7 +63,9 @@ export const updateUserRole = async (req, res, next) => {
 
 export const getStats = async (req, res, next) => {
   try {
-    const stats = await adminService.getStats(req.user.tenantId);
+    const { tenantId } = req.user;
+
+    const stats = await adminService.getStats(tenantId);
 
     res.status(200).json({
       success: true,

@@ -1,18 +1,27 @@
-import User from "../models/user.model.js";
-import Ticket from "../models/ticket.model.js";
 import AppError from "../utils/appError.js";
+import * as userDAO from "../dao/user.dao.js";
+import * as ticketDAO from "../dao/ticket.dao.js";
 
-// Get all users in tenant
-export const getUsers = async (admin) => {
-  return await User.find({ tenantId: admin.tenantId }).select("-password");
+/**
+ * Get all users in a tenant
+ *
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @returns {Promise<Array>} - List of users excluding password
+ */
+export const getUsers = async (tenantId) => {
+  return await userDAO.getUsersByTenant(tenantId);
 };
 
-// Approve or reject user
-export const approveUser = async (userId, isApproved, admin) => {
-  const user = await User.findOne({
-    _id: userId,
-    tenantId: admin.tenantId,
-  });
+/**
+ * Approve or reject a user
+ *
+ * @param {string} userId - MongoDB ObjectId of the user
+ * @param {boolean} isApproved - Approval status
+ * @param {string} tenantId - MongoDB ObjectId of the tenant (for security check)
+ * @returns {Promise<Object>} - Updated user object
+ */
+export const approveUser = async (userId, isApproved, tenantId) => {
+  const user = await userDAO.getUserByIdAndTenant(userId, tenantId);
 
   if (!user) throw new AppError("User not found", 404);
 
@@ -30,16 +39,21 @@ export const approveUser = async (userId, isApproved, admin) => {
   return user;
 };
 
-// Update user role
-export const updateUserRole = async (userId, role, admin) => {
-  if (admin.id === userId) {
+/**
+ * Update user role
+ *
+ * @param {string} userId - MongoDB ObjectId of the user
+ * @param {string} role - New role for the user
+ * @param {string} tenantId - MongoDB ObjectId of the tenant (for security check)
+ * @param {string} adminId - MongoDB ObjectId of the admin making the change (prevents self-role change)
+ * @returns {Promise<Object>} - Updated user object
+ */
+export const updateUserRole = async (userId, role, tenantId, adminId) => {
+  if (adminId === userId) {
     throw new AppError("Cannot change your own role", 403);
   }
 
-  const user = await User.findOne({
-    _id: userId,
-    tenantId: admin.tenantId,
-  });
+  const user = await userDAO.getUserByIdAndTenant(userId, tenantId);
 
   if (!user) throw new AppError("User not found", 404);
 
@@ -54,32 +68,20 @@ export const updateUserRole = async (userId, role, admin) => {
   return user;
 };
 
-// Get dashboard stats
+/**
+ * Get dashboard statistics for a tenant
+ *
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @returns {Promise<Object>} - Dashboard statistics
+ */
 export const getStats = async (tenantId) => {
-  const totalTickets = await Ticket.countDocuments({ tenantId });
-  const openTickets = await Ticket.countDocuments({
-    tenantId,
-    status: "open",
-  });
-  const assignedTickets = await Ticket.countDocuments({
-    tenantId,
-    status: "assigned",
-  });
-  const resolvedTickets = await Ticket.countDocuments({
-    tenantId,
-    status: "resolved",
-  });
+  const totalTickets = await ticketDAO.countTicketsByTenant(tenantId);
+  const openTickets = await ticketDAO.countTicketsByStatus(tenantId, "open");
+  const assignedTickets = await ticketDAO.countTicketsByStatus(tenantId, "assigned");
+  const resolvedTickets = await ticketDAO.countTicketsByStatus(tenantId, "resolved");
 
-  const totalAgents = await User.countDocuments({
-    tenantId,
-    role: "agent",
-  });
-
-  const approvedAgents = await User.countDocuments({
-    tenantId,
-    role: "agent",
-    isApproved: true,
-  });
+  const totalAgents = await userDAO.countUsersByTenantAndRole(tenantId, "agent");
+  const approvedAgents = await userDAO.countUsersByTenantRoleAndApproval(tenantId, "agent", true);
 
   const pendingApproval = totalAgents - approvedAgents;
 
