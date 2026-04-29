@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { tenantOnboardingValidation, registerValidation , loginValidation } from "../validation/auth.validation.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 const router = Router();
 
 /**
@@ -29,5 +30,24 @@ router.post("/register", registerValidation, authController.registerUser);
  * @returns {Object} - The logged in user details and JWT token
  */
 router.post("/login", loginValidation, authController.loginUser);
+
+
+/**
+ * @route GET /api/auth/tenant
+ * @desc Get current tenant details by slug
+ * @access Public
+ * @query { slug }
+ * @returns {Object} - The tenant details if found
+ */
+router.get("/tenant", authController.getCurrentTenant);
+
+/**
+ * @route GET /api/auth/me
+ * @desc Get current logged in user details
+ * @access Private
+ * @returns {Object} - The current logged in user details
+ */
+router.get("/me", authMiddleware, authController.getMe);
+
 
 export default router;

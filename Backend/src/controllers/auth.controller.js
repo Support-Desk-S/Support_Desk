@@ -84,3 +84,54 @@ export const loginUser = async (req, res) => {
         });
     }
 };
+
+export const getMe = async (req, res) => {
+    try {
+        const user = await authService.getMe(req.user.id);
+        return res.status(200).json({
+            success: true,
+            data: user,
+        });
+    } catch (err) {
+        if (err instanceof AppError) {
+            return res.status(err.statusCode).json({
+                success: false,
+                message: err.message,
+            });
+        }   
+        console.error("Error in getMe:", err);
+        return res.status(500).json({
+            success: false,
+            message: "server error",
+        });
+    }
+};
+
+export const getCurrentTenant = async (req, res) => {
+    try {
+        const slug = req.query.slug || req.params.slug;
+        if (!slug) {
+            return res.status(400).json({
+                success: false,
+                message: "Tenant slug is required",
+            });
+        }
+        const tenant = await authService.getCurrentTenant(slug);
+        return res.status(200).json({
+            success: true,
+            data: tenant,
+        });
+    } catch (err) {
+        if (err instanceof AppError) {
+            return res.status(err.statusCode).json({
+                success: false,
+                message: err.message,
+            });
+        }
+        console.error("Error in getCurrentTenant:", err);
+        return res.status(500).json({
+            success: false,
+            message: "server error",
+        });
+    }
+};
