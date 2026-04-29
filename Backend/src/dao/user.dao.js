@@ -47,3 +47,41 @@ export async function getAllUsersBySlug(slug) {
     const users = await userModel.find({ slug });
     return users;
 }
+
+
+/**
+ * Fetch all users belonging to a specific tenant
+ *
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @returns {Promise<Array>} List of users excluding password field
+ *
+ * @description
+ * - Used by admin to list all users in their tenant
+ * - Ensures multi-tenant isolation by filtering with tenantId
+ * - Excludes password for security reasons
+ */
+export const getUsersByTenant = async (tenantId) => {
+    return await User
+      .find({ tenantId })          // 🔒 Restrict to tenant users only
+      .select("-password");        // ❌ Never expose password
+  };
+  
+  
+  /**
+   * Fetch a single user by userId within a specific tenant
+   *
+   * @param {string} userId - MongoDB ObjectId of the user
+   * @param {string} tenantId - MongoDB ObjectId of the tenant
+   * @returns {Promise<Object|null>} User object if found, else null
+   *
+   * @description
+   * - Used in admin operations like approve, role update
+   * - Prevents cross-tenant access by checking both _id and tenantId
+   * - Critical for security in multi-tenant systems
+   */
+  export const getUserByIdAndTenant = async (userId, tenantId) => {
+    return await User.findOne({
+      _id: userId,         // 🎯 Target specific user
+      tenantId,            // 🔒 Ensure same tenant
+    });
+  };

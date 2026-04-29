@@ -1,0 +1,71 @@
+import * as adminService from "../service/admin.service.js";
+
+export const getUsers = async (req, res, next) => {
+  try {
+    const users = await adminService.getUsers(req.user);
+
+    res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      data: users,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const approveUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { isApproved } = req.body;
+
+    const user = await adminService.approveUser(
+      userId,
+      isApproved,
+      req.user
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "User approval updated",
+      data: user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateUserRole = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    const user = await adminService.updateUserRole(
+      userId,
+      role,
+      req.user
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "User role updated",
+      data: user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getStats = async (req, res, next) => {
+  try {
+    const stats = await adminService.getStats(req.user.tenantId);
+
+    res.status(200).json({
+      success: true,
+      message: "Stats fetched successfully",
+      data: stats,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
