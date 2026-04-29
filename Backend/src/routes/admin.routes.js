@@ -1,5 +1,6 @@
 import express from "express";
 import * as adminController from "../controllers/admin.controller.js";
+import { upload } from "../config/multer.js";
 import {
   authMiddleware,
   isAdmin,
@@ -46,4 +47,9 @@ router.patch(
  */
 router.get("/stats", tenantMiddleware, adminController.getStats);
 
+/**
+ * @route POST /api/admin/tenant/context
+ * @desc add tenant context for ai assistant
+ */
+router.post("/tenant/context", tenantMiddleware, upload.single("file"), adminController.addTenantContext);
 export default router;

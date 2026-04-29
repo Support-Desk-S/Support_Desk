@@ -1,22 +1,36 @@
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const { PDFParse } = require("pdf-parse");
 import * as adminService from "../service/admin.service.js";
+import AppError from "../utils/appError.js";
 
-export const getUsers = async (req, res, next) => {
+export const getUsers = async (req, res) => {
   try {
     const { tenantId } = req.user;
 
     const users = await adminService.getUsers(tenantId);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Users fetched successfully",
       data: users,
     });
   } catch (err) {
-    next(err);
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
+    console.error("Error in getUsers:", err);
+    return res.status(500).json({
+      success: false,
+      message: "server error",
+    });
   }
 };
 
-export const approveUser = async (req, res, next) => {
+export const approveUser = async (req, res) => {
   try {
     const { userId } = req.params;
     const { isApproved } = req.body;
@@ -28,17 +42,27 @@ export const approveUser = async (req, res, next) => {
       tenantId
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User approval updated",
       data: user,
     });
   } catch (err) {
-    next(err);
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
+    console.error("Error in approveUser:", err);
+    return res.status(500).json({
+      success: false,
+      message: "server error",
+    });
   }
 };
 
-export const updateUserRole = async (req, res, next) => {
+export const updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;
     const { role } = req.body;
@@ -51,28 +75,76 @@ export const updateUserRole = async (req, res, next) => {
       adminId
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User role updated",
       data: user,
     });
   } catch (err) {
-    next(err);
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
+    console.error("Error in updateUserRole:", err);
+    return res.status(500).json({
+      success: false,
+      message: "server error",
+    });
   }
 };
 
-export const getStats = async (req, res, next) => {
+export const getStats = async (req, res) => {
   try {
     const { tenantId } = req.user;
 
     const stats = await adminService.getStats(tenantId);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Stats fetched successfully",
       data: stats,
     });
   } catch (err) {
-    next(err);
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
+    console.error("Error in getStats:", err);
+    return res.status(500).json({
+      success: false,
+      message: "server error",
+    });
   }
 };
+
+
+export const addTenantContext = async (req, res) => {
+    try {
+      const { tenantId } = req.user;
+      const file = req.file;
+      console.log("tetst"); // Debug log
+      if (!file) {
+        throw new AppError("No file uploaded", 400);
+      }
+      const uint8Array = new Uint8Array(file.buffer);
+      const data = new PDFParse(uint8Array);
+      const text = await data.getText();
+      console.log("Extracted text:", text); // Debug log
+    } catch (err) {
+        if (err instanceof AppError) {
+            return res.status(err.statusCode).json({
+                success: false,
+                message: err.message,
+            });
+        }
+        console.error("Error in addTenantContext:", err);
+         return res.status(500).json({
+            success: false,
+            message: "server error",
+        });
+    }
+}
