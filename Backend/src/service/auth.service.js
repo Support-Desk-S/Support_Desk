@@ -88,3 +88,19 @@ export const loginUser = async (email, password) => {
 
     return user;
 }
+
+export const getMe = async (userId) => {
+    const user = await userDAO.getUserById(userId);
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+    return user;
+}
+
+export const getCurrentTenant = async (slug) => {
+    const tenant = await tenantDAO.getTenantBySlug(slug);
+    if (!tenant) {
+        throw new AppError("Tenant not found", 404);
+    }
+    return tenant;
+}

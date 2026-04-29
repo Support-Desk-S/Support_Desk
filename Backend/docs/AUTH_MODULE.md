@@ -10,6 +10,8 @@ The Auth Module handles user authentication and authorization for the Support De
 - **Tenant Registration** - Onboard a new tenant with an admin user
 - **User Registration** - Register new users within an existing tenant
 - **User Login** - Authenticate users and issue JWT tokens
+- **Get Tenant** - Retrieve tenant details by slug
+- **Get Current User** - Retrieve currently logged-in user details
 
 ### Key Features
 - Multi-tenant support with tenant-user relationships
@@ -308,6 +310,160 @@ MongoDB
 
 ---
 
+### 4. Get Tenant Details
+
+**Endpoint:** `GET /api/auth/tenant`
+
+**Access:** Public
+
+**Description:** Retrieve tenant information by slug. Useful for frontend to display tenant branding and verify tenant existence before registration.
+
+#### Request Parameters
+
+| Parameter | Type | Required | Location | Description |
+|-----------|------|----------|----------|-------------|
+| `slug` | String | ✓ | Query string | Tenant's URL-friendly identifier |
+
+#### Request Example
+
+```javascript
+fetch('/api/auth/tenant?slug=acme-corp', {
+  method: 'GET',
+  headers: { 'Content-Type': 'application/json' }
+})
+```
+
+#### Success Response (200)
+
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "Acme Corporation",
+    "slug": "acme-corp",
+    "supportEmail": "support@acme.com",
+    "createdAt": "2026-04-28T10:30:00Z"
+  }
+}
+```
+
+#### Error Responses
+
+**400 - Bad Request (Slug not provided)**
+```json
+{
+  "success": false,
+  "message": "Tenant slug is required"
+}
+```
+
+**404 - Not Found (Slug doesn't exist)**
+```json
+{
+  "success": false,
+  "message": "Tenant not found"
+}
+```
+
+**500 - Server Error**
+```json
+{
+  "success": false,
+  "message": "server error"
+}
+```
+
+#### Notes
+- No authentication required
+- Can be called before user registration to verify tenant exists
+- Returns only public tenant information (no sensitive data)
+
+---
+
+### 5. Get Current User
+
+**Endpoint:** `GET /api/auth/me`
+
+**Access:** Private (requires authentication)
+
+**Description:** Retrieve the currently authenticated user's profile information. Returns user details from the stored JWT token.
+
+#### Request Headers
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `Cookie` | ✓ | HTTP-only cookie containing JWT token |
+
+#### Request Example
+
+```javascript
+fetch('/api/auth/me', {
+  method: 'GET',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include'  // Send JWT cookie
+})
+```
+
+#### Success Response (200)
+
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "507f1f77bcf86cd799439012",
+    "name": "John Doe",
+    "email": "admin@acme.com",
+    "role": "admin",
+    "tenantId": "507f1f77bcf86cd799439011",
+    "isApproved": true,
+    "createdAt": "2026-04-28T10:30:00Z"
+  }
+}
+```
+
+#### Error Responses
+
+**401 - Unauthorized (No token provided)**
+```json
+{
+  "success": false,
+  "message": "No token provided"
+}
+```
+
+**401 - Unauthorized (Invalid token)**
+```json
+{
+  "success": false,
+  "message": "Invalid token"
+}
+```
+
+**404 - Not Found (User not found)**
+```json
+{
+  "success": false,
+  "message": "User not found"
+}
+```
+
+**500 - Server Error**
+```json
+{
+  "success": false,
+  "message": "server error"
+}
+```
+
+#### Notes
+- Requires valid JWT token in HTTP-only cookie
+- Token must be obtained via login or tenant registration
+- Useful for frontend to validate user session and display user info
+- Returns complete user profile including role and approval status
+
+---
+
 ## Data Models
 
 ### Tenant Schema
@@ -575,6 +731,6 @@ const response = await fetch('/api/auth/register', {
 
 ---
 
-**Last Updated:** April 28, 2026  
-**Version:** 1.0.0  
+**Last Updated:** April 29, 2026  
+**Version:** 1.1.0  
 **Maintainer:** Backend Team
