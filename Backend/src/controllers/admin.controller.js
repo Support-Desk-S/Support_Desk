@@ -1,6 +1,4 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const { PDFParse } = require("pdf-parse");
+
 import * as adminService from "../service/admin.service.js";
 import AppError from "../utils/appError.js";
 
@@ -126,14 +124,13 @@ export const addTenantContext = async (req, res) => {
     try {
       const { tenantId } = req.user;
       const file = req.file;
-      console.log("tetst"); // Debug log
-      if (!file) {
-        throw new AppError("No file uploaded", 400);
-      }
-      const uint8Array = new Uint8Array(file.buffer);
-      const data = new PDFParse(uint8Array);
-      const text = await data.getText();
-      console.log("Extracted text:", text); // Debug log
+      const tenant = await adminService.addAicontextService(tenantId, file);
+
+      return res.status(200).json({
+        success: true,
+        message: "AI context added successfully",
+        data: tenant,
+      });
     } catch (err) {
         if (err instanceof AppError) {
             return res.status(err.statusCode).json({

@@ -21,8 +21,14 @@ const tenantSchema = new mongoose.Schema({
           match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
       },
       aiContext: {
-          type: String,
-          default: null,
+        type: [
+          {
+              url:{
+                  type: String,
+              }
+          }
+        ],
+        default: []
       },
     },
     { timestamps: true }

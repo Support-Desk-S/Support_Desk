@@ -34,3 +34,18 @@ export async function getAllTenants() {
     const tenants = await tenantModel.find();
     return tenants;
 }
+
+
+export async function addAIContext(tenantId, url) {
+    const tenant = await tenantModel.findById(tenantId);
+    if (!tenant) {
+        throw new Error("Tenant not found");
+    }
+    // Initialize aiContext if it doesn't exist (for existing tenants)
+    if (!tenant.aiContext) {
+        tenant.aiContext = [];
+    }
+    tenant.aiContext.push({ url });
+    await tenant.save();
+    return tenant;
+}

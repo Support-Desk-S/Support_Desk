@@ -1,6 +1,14 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import AppError from "../utils/appError.js";
 import * as userDAO from "../dao/user.dao.js";
 import * as ticketDAO from "../dao/ticket.dao.js";
+import { uploadFile } from "./storage.service.js";
+import { getEmbeddings } from "../utils/getEmbeddings.js";
+import { index } from "../config/vectorDb.js"
+import * as tenantDAO from "../dao/tenant.dao.js";
 
 /**
  * Get all users in a tenant
@@ -101,3 +109,60 @@ export const getStats = async (tenantId) => {
     resolutionRate,
   };
 };
+
+
+export const addAicontextService = async (tenantId, file) => {
+    try{
+        if (!file) {
+            throw new AppError("No file uploaded", 400);
+        }
+        const result = await uploadFile({
+            buffer: file.buffer,
+            fileName: file.originalname,
+            folder: "tenant-context",
+        })
+        console.log("File uploaded to ImageKit:", result.url,result); // Debug log
+        
+        // Save buffer to temporary file for PDFLoader
+        const tempDir = "./temp";
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir);
+        }
+        const tempFilePath = path.join(tempDir, `temp-${Date.now()}.pdf`);
+        fs.writeFileSync(tempFilePath, file.buffer);
+        
+        try {
+            const loader = new PDFLoader(tempFilePath);
+            const documents = await loader.load();
+            const text = documents.map(doc => doc.pageContent).join("\n");
+            
+            console.log("Extracted PDF text length:", text.length);
+            console.log("Full extracted text:\n", text);
+            console.log("=".repeat(50));
+
+            const embeddings = await getEmbeddings(text);
+            console.log("Number of chunks created:", embeddings.length);
+
+            await index.upsert({
+              records : embeddings.map((item, index) => ({
+                id: `${tenantId}-${file.originalname}-${index}`,
+                values: item.embedding,
+                metadata:{
+                  tenantId,
+                  text: item.chunk,
+                  source: file.originalname,
+                }
+              }))
+            });
+            const tenant = await tenantDAO.addAIContext(tenantId, result.url);
+            return tenant;
+        } finally {
+            // Clean up temporary file
+            if (fs.existsSync(tempFilePath)) {
+                fs.unlinkSync(tempFilePath);
+            }
+        }
+    }catch(err){
+        throw err;
+    }
+}
