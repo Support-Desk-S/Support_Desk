@@ -1,27 +1,79 @@
-import { Routes, Route, Navigate } from "react-router";
+import { Routes, Route, Navigate, Outlet } from "react-router";
 import AuthPage from "../../features/auth/pages/AuthPage";
+import DashboardPage from "../../features/dashboard/pages/DashboardPage";
+import TicketsPage from "../../features/tickets/pages/TicketsPage";
+import AgentsPage from "../../features/agents/pages/AgentsPage";
+import WidgetsPage from "../../features/widgets/pages/WidgetsPage";
+import AiContextPage from "../../features/ai-context/pages/AiContextPage";
+import SettingsPage from "../../features/settings/pages/SettingsPage";
 import ProtectedRoute from "./ProtectedRoute";
+import TenantLoader from "./TenantLoader";
+import AdminGuard from "./AdminGuard";
+import NotFoundPage from "../../shared/components/pages/NotFoundPage";
 
-// temp dashboard
-const Dashboard = () => <div>Dashboard</div>;
-
+/**
+ * Route Protection Layers:
+ * 1. TenantLoader  — resolves /:slug → tenant (404 = not found page)
+ * 2. ProtectedRoute — checks user auth (no cookie → /auth)
+ * 3. AdminGuard    — wraps admin-only routes (agent → 403 page)
+ */
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public: Auth */}
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/" element={<Navigate to="/auth" replace />} />
 
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
+      {/* Tenant-scoped routes */}
+      <Route path="/:tenantSlug" element={<TenantLoader />}>
+        {/* All tenant routes require auth */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <Outlet />
+            </ProtectedRoute>
+          }
+        >
+          {/* Default redirect to dashboard */}
+          <Route index element={<Navigate to="dashboard" replace />} />
 
-      <Route path="*" element={<Navigate to="/auth" replace />} />
+          {/* Agent + Admin */}
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="tickets" element={<TicketsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+
+          {/* Admin only */}
+          <Route
+            path="agents"
+            element={
+              <AdminGuard>
+                <AgentsPage />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="widgets"
+            element={
+              <AdminGuard>
+                <WidgetsPage />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="ai-context"
+            element={
+              <AdminGuard>
+                <AiContextPage />
+              </AdminGuard>
+            }
+          />
+        </Route>
+      </Route>
+
+      {/* 404 */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
+
 export default AppRoutes;
