@@ -6,6 +6,7 @@ const App = () => {
   const { loadUser } = useAuth();
 
   useEffect(() => {
+    // Silently try to restore user session from httpOnly cookie
     loadUser();
   }, []);
 
