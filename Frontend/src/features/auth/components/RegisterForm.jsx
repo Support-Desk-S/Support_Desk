@@ -1,186 +1,106 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import InputField from "./InputField";
-import {
-  Loader2,
-  ArrowRight,
-  ArrowLeft,
-  Building2,
-  Link,
-  Mail,
-  User,
-  Lock,
-} from "lucide-react";
+import { Building2, Link2, Mail, User, Lock, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
+
+const STEP_FIELDS = [
+  [
+    { key: "name", label: "Company Name", type: "text", icon: Building2, placeholder: "Acme Corp" },
+    { key: "slug", label: "Workspace Slug", type: "text", icon: Link2, placeholder: "acme-corp", hint: "Used in your URL: platform.com/acme-corp" },
+    { key: "supportEmail", label: "Support Email", type: "email", icon: Mail, placeholder: "support@acme.com" },
+  ],
+  [
+    { key: "adminName", label: "Your Name", type: "text", icon: User, placeholder: "John Doe" },
+    { key: "adminEmail", label: "Your Email", type: "email", icon: Mail, placeholder: "john@acme.com" },
+    { key: "password", label: "Password", type: "password", icon: Lock, placeholder: "Min. 6 characters" },
+  ],
+];
 
 const RegisterForm = () => {
   const { registerTenant, loading } = useAuth();
-
-  const [step, setStep] = useState(1);
-
+  const [step, setStep] = useState(0);
   const [form, setForm] = useState({
-    name: "",
-    slug: "",
-    supportEmail: "",
-    adminName: "",
-    adminEmail: "",
-    password: "",
+    name: "", slug: "", supportEmail: "", adminName: "", adminEmail: "", password: "",
   });
 
-  const handleChange = (key, value) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const generateSlug = (v) =>
+    v.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+  const set = (key) => (e) => {
+    const value = e.target.value;
+    if (key === "name") {
+      setForm((p) => ({ ...p, name: value, slug: generateSlug(value) }));
+    } else {
+      setForm((p) => ({ ...p, [key]: value }));
+    }
   };
 
-  const generateSlug = (value) =>
-    value
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "");
-
-  const isStep1Valid = form.name && form.slug && form.supportEmail;
-  const isStep2Valid = form.adminName && form.adminEmail && form.password;
+  const currentFields = STEP_FIELDS[step];
+  const isCurrentValid = currentFields.every((f) => form[f.key].trim());
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (loading || !isStep2Valid) return;
+    if (step < 1) { if (isCurrentValid) setStep(1); return; }
+    if (!isCurrentValid || loading) return;
     registerTenant(form);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <h2 className="text-2xl font-semibold">Create workspace</h2>
-        <p className="text-gray-500 text-sm">Setup your company</p>
+        <h2 className="text-xl font-semibold text-[#111111]">Create workspace</h2>
+        <p className="text-sm text-[#6b7280] mt-0.5">Set up your company on SupportDesk</p>
       </div>
 
-      {/* STEP INDICATOR */}
-      <div className="flex justify-between text-xs text-gray-600">
-        <span className={step === 1 ? "text-white" : ""}>Company</span>
-        <span className={step === 2 ? "text-white" : ""}>Admin</span>
+      {/* Step indicator */}
+      <div className="flex gap-1.5">
+        {[0, 1].map((s) => (
+          <div
+            key={s}
+            className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-[#111111]" : "bg-[#e5e7eb]"}`}
+          />
+        ))}
       </div>
+      <p className="text-xs text-[#9ca3af]">Step {step + 1} of 2 — {step === 0 ? "Company info" : "Admin account"}</p>
 
-      {step === 1 && (
-        <>
+      {/* Fields */}
+      {currentFields.map(({ key, label, type, icon: Icon, placeholder, hint }) => (
+        <div key={key}>
+          <label className="text-sm font-medium text-[#111111] block mb-1.5">{label}</label>
           <div className="relative">
-            <Building2
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-            />
-            <InputField
-              placeholder="Company Name"
-              value={form.name}
-              onChange={(v) => {
-                handleChange("name", v);
-                handleChange("slug", generateSlug(v));
-              }}
-              className="pl-10"
+            <Icon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
+            <input
+              type={type}
+              placeholder={placeholder}
+              value={form[key]}
+              onChange={set(key)}
+              required
+              className="w-full h-10 pl-8 pr-3 text-sm border border-[#e5e7eb] rounded-[10px] focus:outline-none focus:border-[#111111] transition-colors placeholder:text-[#9ca3af]"
             />
           </div>
+          {hint && <p className="text-xs text-[#9ca3af] mt-1">{hint}</p>}
+        </div>
+      ))}
 
-          <div className="relative">
-            <Link
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-            />
-            <InputField
-              placeholder="Slug"
-              value={form.slug}
-              onChange={(v) => handleChange("slug", v)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="relative">
-            <Mail
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-            />
-            <InputField
-              placeholder="Support Email"
-              value={form.supportEmail}
-              onChange={(v) => handleChange("supportEmail", v)}
-              className="pl-10"
-            />
-          </div>
-
+      {/* Actions */}
+      <div className="flex gap-3">
+        {step > 0 && (
           <button
             type="button"
-            disabled={!isStep1Valid}
-            onClick={() => setStep(2)}
-            className=" disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer w-full bg-white text-black py-3 rounded-lg flex items-center justify-center gap-2"
+            onClick={() => setStep(0)}
+            className="flex-1 h-10 border border-[#e5e7eb] text-[#111111] text-sm font-medium rounded-[10px] flex items-center justify-center gap-1.5 hover:bg-[#f9fafb] transition-colors"
           >
-            Next <ArrowRight size={18} />
+            <ArrowLeft size={14} /> Back
           </button>
-        </>
-      )}
-
-      {step === 2 && (
-        <>
-          <div className="relative">
-            <User
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-            />
-            <InputField
-              placeholder="Admin Name"
-              value={form.adminName}
-              onChange={(v) => handleChange("adminName", v)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="relative">
-            <Mail
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-            />
-            <InputField
-              placeholder="Admin Email"
-              value={form.adminEmail}
-              onChange={(v) => handleChange("adminEmail", v)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="relative">
-            <Lock
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-            />
-            <InputField
-              type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={(v) => handleChange("password", v)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="w-1/2 border border-gray-700 py-3 cursor-pointer rounded-lg flex items-center justify-center gap-2"
-            >
-              <ArrowLeft size={18} /> Back
-            </button>
-
-            <button
-              disabled={loading || !isStep2Valid}
-              className="w-1/2 bg-white text-black py-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed rounded-lg flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin" size={18} />
-                  Creating...
-                </>
-              ) : (
-                "Create"
-              )}
-            </button>
-          </div>
-        </>
-      )}
+        )}
+        <button
+          type="submit"
+          disabled={!isCurrentValid || loading}
+          className="flex-1 h-10 bg-[#111111] text-white text-sm font-medium rounded-[10px] flex items-center justify-center gap-1.5 hover:bg-[#2d2d2d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? <Loader2 size={14} className="animate-spin" /> : null}
+          {loading ? "Creating..." : step < 1 ? (<>Next <ArrowRight size={14} /></>) : "Create Workspace"}
+        </button>
+      </div>
     </form>
   );
 };
