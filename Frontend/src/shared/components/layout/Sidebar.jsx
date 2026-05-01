@@ -24,7 +24,7 @@ const navItems = [
   { label: 'Agents', path: 'agents', icon: Users, adminOnly: true },
   { label: 'Widgets', path: 'widgets', icon: MessageSquareCode, adminOnly: true },
   { label: 'AI Context', path: 'ai-context', icon: Bot, adminOnly: true },
-  { label: 'Settings', path: 'settings', icon: Settings, adminOnly: true },
+  { label: 'Settings', path: 'settings', icon: Settings, adminOnly: false },
 ];
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
