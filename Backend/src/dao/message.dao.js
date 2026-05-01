@@ -120,9 +120,9 @@ export const updateTicket = async (ticketId, updateData) => {
   const ticket = await Ticket.findByIdAndUpdate(
     ticketId,
     { ...updateData, updatedAt: Date.now() },
-    { new: true }
+    { returnDocument: "after" }
   );
-
+  console.log("Updated ticket:", ticket);
   return ticket;
 };
 
