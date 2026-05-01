@@ -11,3 +11,5 @@ export const getMeApi = () => axios.get("/api/auth/me");
 
 export const updatePasswordApi = (data) =>
   axios.patch("/api/auth/update-password", data);
+
+export const logoutApi = () => axios.post("/api/auth/logout");

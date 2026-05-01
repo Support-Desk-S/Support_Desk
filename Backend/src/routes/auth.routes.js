@@ -31,6 +31,7 @@ router.post("/register", registerValidation, authController.registerUser);
  */
 router.post("/login", loginValidation, authController.loginUser);
 
+router.post("/logout", authMiddleware, authController.logoutUser);
 
 /**
  * @route GET /api/auth/tenant

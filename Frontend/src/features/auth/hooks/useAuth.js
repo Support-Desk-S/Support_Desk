@@ -13,6 +13,7 @@ import {
   logout,
   setInitialized,
 } from "../state/authSlice";
+import { logoutApi } from "../services/auth.service";
 import { setTenant } from "../../tenant/state/tenantSlice";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
@@ -94,9 +95,14 @@ export const useAuth = () => {
 
   const handleLogout = async () => {
     try {
-      await axiosInstance.post("/api/auth/logout").catch(() => {});
+      await logoutApi(); // 🔥 use service layer
+    } catch (err) {
+      console.error("Logout failed:", err);
     } finally {
+      // 🔥 clear all state
       dispatch(logout());
+      dispatch(setTenant(null));
+  
       navigate("/auth");
     }
   };

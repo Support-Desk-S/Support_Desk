@@ -9,5 +9,9 @@ export function setToken(res,user){
         tenantId: user.tenantId,
     }, config.JWT_SECRET, { expiresIn: '7d' });
 
-    res.cookie('token', token);
+    res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,
+      });
 }

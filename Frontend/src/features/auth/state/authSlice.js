@@ -19,6 +19,7 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       state.user = null;
+      state.loading = false;      // ✅ IMPORTANT
       state.isInitialized = true;
     },
     setInitialized: (state) => {

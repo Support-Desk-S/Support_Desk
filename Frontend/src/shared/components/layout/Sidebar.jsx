@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useParams } from 'react-router';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux'; // FIXED
 import {
   LayoutDashboard,
   TicketCheck,
@@ -12,10 +12,7 @@ import {
   Zap,
   X,
 } from 'lucide-react';
-import { logout } from '../../../features/auth/state/authSlice';
-import { clearTenant } from '../../../features/tenant/state/tenantSlice';
-import axiosInstance from '../../../lib/axios';
-import toast from 'react-hot-toast';
+import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useNavigate } from 'react-router';
 
 const navItems = [
@@ -34,16 +31,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      await axiosInstance.post('/api/auth/logout').catch(() => {});
-    } finally {
-      dispatch(logout());
-      dispatch(clearTenant());
-      toast.success('Logged out');
-      navigate('/auth');
-    }
-  };
+  const { handleLogout } = useAuth();
 
   const isAdmin = user?.role === 'admin';
   const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
@@ -126,7 +114,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <p className="text-[#6b7280] text-xs truncate">{user?.email}</p>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={async () => {
+              await handleLogout();
+              setIsOpen(false);
+            }}
             className="text-[#6b7280] hover:text-white transition-colors p-1"
             title="Logout"
           >

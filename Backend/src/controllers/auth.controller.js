@@ -85,6 +85,28 @@ export const loginUser = async (req, res) => {
     }
 };
 
+export const logoutUser = async (req, res) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false,
+          });
+  
+      return res.status(200).json({
+        success: true,
+        message: "Logged out successfully",
+      });
+  
+    } catch (err) {
+      console.error("Error in logoutUser:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
+  };
+
 export const getMe = async (req, res) => {
     try {
         const user = await authService.getMe(req.user.id);
