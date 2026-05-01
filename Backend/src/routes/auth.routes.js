@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller.js";
-import { tenantOnboardingValidation, registerValidation , loginValidation } from "../validation/auth.validation.js";
+import { tenantOnboardingValidation, registerValidation , loginValidation, updatePasswordValidation } from "../validation/auth.validation.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 const router = Router();
 
@@ -51,3 +51,10 @@ router.get("/me", authMiddleware, authController.getMe);
 
 
 export default router;
+
+router.patch(
+    "/update-password",
+    authMiddleware,
+    updatePasswordValidation,
+    authController.updatePassword
+  );

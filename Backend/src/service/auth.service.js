@@ -104,3 +104,42 @@ export const getCurrentTenant = async (slug) => {
     }
     return tenant;
 }
+
+export const updatePassword = async (
+    userId,
+    oldPassword,
+    newPassword
+  ) => {
+  
+    if (!oldPassword || !newPassword) {
+      throw new AppError("All fields are required", 400);
+    }
+  
+    if (newPassword.length < 6) {
+      throw new AppError("Password must be at least 6 characters", 400);
+    }
+  
+    if (oldPassword === newPassword) {
+      throw new AppError("New password must be different", 400);
+    }
+  
+    const user = await userDAO.getUserByIdWithPassword(userId);
+  
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+  
+    // compare old password
+    const isMatch = await user.comparePassword(oldPassword);
+  
+    if (!isMatch) {
+      throw new AppError("Old password is incorrect", 401);
+    }
+  
+    // set new password (pre-save will hash)
+    user.password = newPassword;
+  
+    await user.save();
+  
+    return "Password updated successfully";
+  };
