@@ -116,3 +116,9 @@ export const countUsersByTenantAndRole = async (tenantId, role) => {
 export const countUsersByTenantRoleAndApproval = async (tenantId, role, isApproved) => {
   return await userModel.countDocuments({ tenantId, role, isApproved });
 };
+
+export async function getUserByIdWithPassword(userId) {
+  return await userModel
+    .findById(userId)
+    .select("+password");
+}
