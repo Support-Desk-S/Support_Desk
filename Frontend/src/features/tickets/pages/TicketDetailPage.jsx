@@ -114,7 +114,7 @@ const MessageBubble = ({ msg }) => {
 const ReassignDropdown = ({ currentAgentId, onReassign }) => {
   const [open, setOpen] = useState(false);
   const { users } = useAgents();
-  const agents = users.filter((u) => u.role === 'agent' && u.isApproved);
+  const agents = users.filter((u) => (u.role === 'agent' || u.role === 'admin') && u.isApproved);
   const ref = useRef(null);
 
   useEffect(() => {

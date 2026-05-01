@@ -15,7 +15,8 @@ export const createTicket = async (data) => {
     tenantId: data.tenantId,
     customerEmail: data.customerEmail,
     subject: data.subject,
-    status: "open",
+    status: data.status || "open",
+    assignedTo: data.assignedTo || null,
   });
 
   return ticket;
@@ -38,6 +39,7 @@ export const getTickets = async (filter, page = 1, limit = 10) => {
   const skip = (page - 1) * limit;
 
   const tickets = await Ticket.find(filter)
+    .populate('assignedTo', 'name email isOnline')
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 });

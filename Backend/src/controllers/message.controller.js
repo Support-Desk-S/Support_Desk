@@ -1,6 +1,7 @@
 import * as aiService from "../service/ai.service.js";
 import * as messageService from "../service/message.service.js";
 import * as chatWidgetDAO from "../dao/chatWidget.dao.js";
+import * as ticketDAO from "../dao/ticket.dao.js";
 import AppError from "../utils/appError.js";
 
 /**
@@ -184,6 +185,34 @@ export const getTicketMessages = async (req, res) => {
     }
     console.error("Error in getTicketMessages:", err);
     return res.status(500).json({ success: false, message: "Error fetching messages" });
+  }
+};
+
+/**
+ * @route GET /api/messages/customer/tickets
+ * @desc Get all tickets for a customer email
+ * @access Public (requires API Key)
+ */
+export const getCustomerTickets = async (req, res) => {
+  try {
+    const { email } = req.query;
+    const { tenantId } = req.user;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const filter = { tenantId, customerEmail: email };
+    // Fetch top 50 tickets for this customer
+    const result = await ticketDAO.getTickets(filter, 1, 50);
+
+    return res.status(200).json({ success: true, data: result.tickets });
+  } catch (err) {
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({ success: false, message: err.message });
+    }
+    console.error("Error in getCustomerTickets:", err);
+    return res.status(500).json({ success: false, message: "Error fetching customer tickets" });
   }
 };
 

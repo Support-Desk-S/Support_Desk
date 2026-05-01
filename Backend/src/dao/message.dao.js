@@ -67,9 +67,10 @@ export const getMessagesByTicketId = async (ticketId, page = 1, limit = 50) => {
 export const getAvailableAgent = async (tenantId) => {
   try {
     // Get all approved agents for the tenant
+    // Get all approved agents/admins for the tenant
     const agents = await User.find({
       tenantId,
-      role: "agent",
+      role: { $in: ["agent", "admin"] },
       isApproved: true,
     }).lean();
 
@@ -149,7 +150,7 @@ export const getConversationHistory = async (ticketId, limit = 50) => {
 export const getApprovedAgents = async (tenantId) => {
   const agents = await User.find({
     tenantId,
-    role: 'agent',
+    role: { $in: ['agent', 'admin'] },
     isApproved: true,
   }).select('name email isOnline').lean();
   return agents;

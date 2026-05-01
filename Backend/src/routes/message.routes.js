@@ -34,6 +34,13 @@ router.post("/send", apiKeyMiddleware, sendMessageValidation, messageController.
 router.post("/ticket/:ticketId", apiKeyMiddleware, messageController.addMessageToTicket);
 
 /**
+ * @route GET /api/messages/customer/tickets
+ * @desc Get all tickets for a customer widget by email
+ * @access Public (requires API Key)
+ */
+router.get("/customer/tickets", apiKeyMiddleware, messageController.getCustomerTickets);
+
+/**
  * @route GET /api/messages/:ticketId
  * @desc Get all messages for a ticket (customer widget polling)
  * @access Public (requires API Key)

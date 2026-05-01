@@ -4,7 +4,8 @@ import {
   getWidgetConfigApi,
   sendInitialMessageApi,
   sendFollowupMessageApi,
-  getTicketMessagesApi
+  getTicketMessagesApi,
+  getCustomerTicketsApi
 } from '../services/widgetApi';
 
 const ChatWidget = ({ apiKey }) => {
@@ -24,6 +25,10 @@ const ChatWidget = ({ apiKey }) => {
   
   // Widget Visibility State
   const [isOpen, setIsOpen] = useState(false);
+
+  // Tabs State
+  const [activeTab, setActiveTab] = useState('current');
+  const [previousTickets, setPreviousTickets] = useState([]);
   
   const bottomRef = useRef(null);
   const pollRef = useRef(null);
@@ -56,8 +61,24 @@ const ChatWidget = ({ apiKey }) => {
 
   // Scroll to bottom
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, emailPrompted]);
+    if (activeTab === 'current') {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, emailPrompted, activeTab]);
+
+  // Fetch previous tickets
+  useEffect(() => {
+    if (customerEmail && isOpen && apiKey) {
+      getCustomerTicketsApi(apiKey, customerEmail).then((res) => {
+        const tickets = res.data.data;
+        setPreviousTickets(tickets);
+        
+        // Auto-clear resolved ticket if they just opened the widget
+        // Wait, only do this if they haven't actively selected a resolved ticket to view.
+        // Actually, let's just let the UI handle it (Show "Start New Chat" button if resolved)
+      }).catch(err => console.error("Failed to fetch previous tickets", err));
+    }
+  }, [customerEmail, isOpen, apiKey]);
 
   // Listen for widget visibility toggle
   useEffect(() => {
@@ -85,10 +106,19 @@ const ChatWidget = ({ apiKey }) => {
         // Map messages (they might be more than we have locally)
         const msgs = res.data.data.messages || [];
         setMessages((prev) => {
-          // Simplistic merge: if lengths differ, just replace (could be optimized)
-          if (msgs.length > prev.filter(m => m._id !== 'welcome').length) {
+          const prevWithoutWelcome = prev.filter(m => m._id !== 'welcome');
+          
+          if (msgs.length !== prevWithoutWelcome.length) {
             return [{ _id: 'welcome', sender: 'ai', message: config.welcomeMessage, createdAt: new Date().toISOString() }, ...msgs];
           }
+
+          // Also check if the last message text is different or sender is different (catches optimistic UI updates resolving to real backend msgs)
+          const lastMsg = msgs[msgs.length - 1];
+          const lastPrevMsg = prevWithoutWelcome[prevWithoutWelcome.length - 1];
+          if (lastMsg && lastPrevMsg && (lastMsg.sender !== lastPrevMsg.sender || lastMsg.message !== lastPrevMsg.message || lastMsg._id !== lastPrevMsg._id)) {
+             return [{ _id: 'welcome', sender: 'ai', message: config.welcomeMessage, createdAt: new Date().toISOString() }, ...msgs];
+          }
+
           return prev;
         });
       } catch (err) {
@@ -112,21 +142,19 @@ const ChatWidget = ({ apiKey }) => {
     const tempId = Date.now().toString();
     setMessages(prev => [...prev, { _id: tempId, sender: 'customer', message: text, createdAt: new Date().toISOString() }]);
 
-    // If we haven't asked for email and haven't created a ticket yet
-    if (!ticketId && !emailPrompted) {
+    // Case 1: We don't have an email at all, prompt for it
+    if (!customerEmail && !emailPrompted) {
       setEmailPrompted(true);
       setMessages(prev => [
         ...prev,
         { _id: 'email-prompt', sender: 'ai', message: 'Before I can help you with that, could you please provide your email address so we can reach you if we get disconnected?', createdAt: new Date().toISOString() }
       ]);
-      // Store the user's first query to send after email
       sessionStorage.setItem('pendingQuery', text);
       return;
     }
 
-    // If we are waiting for email
-    if (emailPrompted && !ticketId && !customerEmail) {
-      // Basic email validation
+    // Case 2: We are waiting for email input
+    if (!customerEmail && emailPrompted) {
       if (!text.includes('@') || !text.includes('.')) {
         setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'That doesn\'t look like a valid email. Please try again.', createdAt: new Date().toISOString() }]);
         return;
@@ -159,7 +187,29 @@ const ChatWidget = ({ apiKey }) => {
       return;
     }
 
-    // Normal follow-up message if ticket is created
+    // Case 3: We have an email, but no ticket yet (New Chat)
+    if (customerEmail && !ticketId) {
+      setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'Let me check on that for you...', createdAt: new Date().toISOString() }]);
+      try {
+        setSending(true);
+        const res = await sendInitialMessageApi(apiKey, { message: text, customerEmail });
+        const { isTicketCreated, ticketId: newTicketId, response } = res.data.data;
+        
+        setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: response, createdAt: new Date().toISOString() }]);
+
+        if (isTicketCreated && newTicketId) {
+          setTicketId(newTicketId);
+          localStorage.setItem('sd_widget_ticket', newTicketId);
+        }
+      } catch (err) {
+        setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'Sorry, we encountered an error processing your request. Please try again later.', createdAt: new Date().toISOString() }]);
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+
+    // Case 4: Normal follow-up message if ticket is created
     if (ticketId) {
       try {
         setSending(true);
@@ -170,9 +220,6 @@ const ChatWidget = ({ apiKey }) => {
       } finally {
         setSending(false);
       }
-    } else {
-      // Should not reach here normally, but fallback
-      setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'I need to create a ticket first.', createdAt: new Date().toISOString() }]);
     }
   };
 
@@ -200,13 +247,37 @@ const ChatWidget = ({ apiKey }) => {
         className="px-5 py-4 text-white shrink-0 shadow-sm"
         style={{ backgroundColor: config.primaryColor }}
       >
-        <h2 className="font-semibold text-lg">{config.title || 'Chat Support'}</h2>
-        <p className="text-xs opacity-90 mt-0.5">{config.subtitle || 'We typically reply in a few minutes'}</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="font-semibold text-lg">{config.title || 'Chat Support'}</h2>
+            <p className="text-xs opacity-90 mt-0.5">{config.subtitle || 'We typically reply in a few minutes'}</p>
+          </div>
+        </div>
+        
+        {/* Tabs */}
+        {customerEmail && (
+          <div className="flex gap-4 mt-3 text-sm font-medium border-b border-white/20">
+            <button 
+              onClick={() => setActiveTab('current')} 
+              className={`pb-1 border-b-2 transition-colors ${activeTab === 'current' ? 'border-white text-white' : 'border-transparent text-white/70 hover:text-white'}`}
+            >
+              Current Chat
+            </button>
+            <button 
+              onClick={() => setActiveTab('previous')} 
+              className={`pb-1 border-b-2 transition-colors ${activeTab === 'previous' ? 'border-white text-white' : 'border-transparent text-white/70 hover:text-white'}`}
+            >
+              Previous Chats
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 bg-[#f9fafb] space-y-4">
-        {messages.map((msg, idx) => {
+      {activeTab === 'current' ? (
+        <>
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 bg-[#f9fafb] space-y-4">
+            {messages.map((msg, idx) => {
           const isCustomer = msg.sender === 'customer';
           return (
             <div key={msg._id || idx} className={`flex ${isCustomer ? 'justify-end' : 'justify-start'} gap-2`}>
@@ -232,33 +303,85 @@ const ChatWidget = ({ apiKey }) => {
             </div>
           );
         })}
-        <div ref={bottomRef} />
-      </div>
+          <div ref={bottomRef} />
+          </div>
 
-      {/* Input Area */}
-      <div className="p-3 bg-white border-t border-gray-100 shrink-0">
-        <form onSubmit={handleSend} className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={emailPrompted && !customerEmail ? "Enter your email..." : "Type your message..."}
-            className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-[13.5px] focus:outline-none focus:border-gray-300 focus:bg-white transition-colors"
-            disabled={sending}
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || sending}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-sm"
-            style={{ backgroundColor: config.primaryColor }}
-          >
-            {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} className="ml-0.5" />}
-          </button>
-        </form>
-        <div className="text-center mt-2">
-           <a href="#" className="text-[10px] text-gray-400 hover:text-gray-500 transition-colors">Powered by SupportDesk</a>
+          {/* Input Area */}
+          <div className="p-3 bg-white border-t border-gray-100 shrink-0">
+            {ticketId && previousTickets.find(t => t._id === ticketId)?.status === 'resolved' ? (
+              <div className="text-center pb-2">
+                <p className="text-xs text-gray-500 mb-2">This chat has been resolved.</p>
+                <button
+                  onClick={() => {
+                    setTicketId(null);
+                    localStorage.removeItem('sd_widget_ticket');
+                    setMessages([
+                      { _id: 'welcome', sender: 'ai', message: config?.welcomeMessage || 'How can I help you today?', createdAt: new Date().toISOString() }
+                    ]);
+                  }}
+                  className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors"
+                >
+                  Start New Chat
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSend} className="flex gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={emailPrompted && !customerEmail ? "Enter your email..." : "Type your message..."}
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-[13.5px] focus:outline-none focus:border-gray-300 focus:bg-white transition-colors"
+                  disabled={sending}
+                />
+                <button
+                  type="submit"
+                  disabled={!input.trim() || sending}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-sm"
+                  style={{ backgroundColor: config.primaryColor }}
+                >
+                  {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} className="ml-0.5" />}
+                </button>
+              </form>
+            )}
+            <div className="text-center mt-2">
+               <a href="#" className="text-[10px] text-gray-400 hover:text-gray-500 transition-colors">Powered by SupportDesk</a>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-4 bg-[#f9fafb] space-y-3">
+          {previousTickets.length === 0 ? (
+            <div className="text-center text-sm text-gray-500 mt-10">No previous chats found.</div>
+          ) : (
+            previousTickets.map(ticket => (
+              <div 
+                key={ticket._id} 
+                className={`bg-white p-3 rounded-lg border cursor-pointer hover:border-gray-300 transition-colors ${ticketId === ticket._id ? 'border-blue-400' : 'border-gray-200'}`}
+                onClick={() => {
+                  setTicketId(ticket._id);
+                  localStorage.setItem('sd_widget_ticket', ticket._id);
+                  setActiveTab('current');
+                  
+                  // Optimistically clear messages so they refetch for the new ticket
+                  // Fetch will happen because ticketId changed and polling useEffect runs
+                  setMessages([{ _id: 'welcome', sender: 'ai', message: config?.welcomeMessage || 'Loading...', createdAt: new Date().toISOString() }]);
+                }}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="text-sm font-medium text-gray-800 line-clamp-1">{ticket.subject || 'Support Ticket'}</h3>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${ticket.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                    {ticket.status}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {new Date(ticket.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

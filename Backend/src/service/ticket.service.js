@@ -1,5 +1,6 @@
 import * as ticketDAO from "../dao/ticket.dao.js";
 import AppError from "../utils/appError.js";
+import User from "../models/user.model.js";
 
 /**
  * Create a new ticket
@@ -9,12 +10,24 @@ import AppError from "../utils/appError.js";
  * @returns {Promise<Object>} - Created ticket object
  */
 export const createTicket = async (data, tenantId) => {
-  const ticket = await ticketDAO.createTicket({
+  // Auto-assign to an available agent
+  const agent = await User.findOne({ tenantId, role: { $in: ['agent', 'admin'] }, isApproved: true });
+
+  const ticketData = {
     tenantId,
     customerEmail: data.customerEmail,
     subject: data.subject,
-  });
+  };
 
+  if (agent) {
+    ticketData.assignedTo = agent._id;
+    ticketData.status = 'assigned';
+  }
+
+  const ticket = await ticketDAO.createTicket(ticketData);
+
+  // If assigned, we populate to return complete info if needed, but returning just object id is fine initially.
+  // Actually ticket object will have the agent ObjectId in assignedTo.
   return ticket;
 };
 
@@ -38,10 +51,7 @@ export const getTickets = async (query, tenantId, userRole, userId) => {
   }
 
   // Role-based logic
-  if (userRole === "agent") {
-    filter.assignedTo = userId;
-  }
-
+  // Removed forced assignedTo = userId restriction for agents so they can see all open tickets
   if (query.assigned === "me") {
     filter.assignedTo = userId;
   }

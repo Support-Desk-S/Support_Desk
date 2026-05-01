@@ -22,3 +22,6 @@ export const sendFollowupMessageApi = (apiKey, ticketId, message) =>
 
 export const getTicketMessagesApi = (apiKey, ticketId) =>
   createWidgetApi(apiKey).get(`/api/messages/${ticketId}`);
+
+export const getCustomerTicketsApi = (apiKey, email) =>
+  createWidgetApi(apiKey).get(`/api/messages/customer/tickets?email=${encodeURIComponent(email)}`);
