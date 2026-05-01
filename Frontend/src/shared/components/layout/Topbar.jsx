@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useParams } from 'react-router';
 import { useSelector } from 'react-redux';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Menu } from 'lucide-react';
 
 const labelMap = {
   dashboard: 'Dashboard',
@@ -12,7 +12,7 @@ const labelMap = {
   settings: 'Settings',
 };
 
-const Topbar = () => {
+const Topbar = ({ onMenuClick }) => {
   const { tenantSlug } = useParams();
   const { user } = useSelector((state) => state.auth);
   const location = useLocation();
@@ -29,13 +29,19 @@ const Topbar = () => {
 
   return (
     <header
-      style={{ height: 'var(--topbar-height)', marginLeft: 'var(--sidebar-width)' }}
-      className="fixed top-0 right-0 left-0 z-20 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-6"
+      className="fixed top-0 right-0 left-0 z-20 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-4 sm:px-6 h-[var(--topbar-height)] md:ml-[var(--sidebar-width)] transition-all duration-300"
     >
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-sm text-[#6b7280]">
-        <span className="font-medium text-[#111111]">{tenantSlug}</span>
-        {crumbs.map((crumb, idx) => (
+      {/* Breadcrumb / Left */}
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden p-1.5 -ml-1.5 text-[#6b7280] hover:text-[#111111] rounded-md"
+        >
+          <Menu size={20} />
+        </button>
+        <nav className="flex items-center gap-1.5 text-sm text-[#6b7280]">
+          <span className="font-medium text-[#111111] hidden sm:block">{tenantSlug}</span>
+          {crumbs.map((crumb, idx) => (
           <React.Fragment key={idx}>
             <ChevronRight size={14} className="text-[#d1d5db]" />
             <span className={idx === crumbs.length - 1 ? 'text-[#111111] font-medium' : ''}>
@@ -44,6 +50,7 @@ const Topbar = () => {
           </React.Fragment>
         ))}
       </nav>
+      </div>
 
       {/* Right: User */}
       <div className="flex items-center gap-3">

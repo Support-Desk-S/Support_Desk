@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   Zap,
+  X,
 } from 'lucide-react';
 import { logout } from '../../../features/auth/state/authSlice';
 import { clearTenant } from '../../../features/tenant/state/tenantSlice';
@@ -26,7 +27,7 @@ const navItems = [
   { label: 'Settings', path: 'settings', icon: Settings, adminOnly: true },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, setIsOpen }) => {
   const { tenantSlug } = useParams();
   const { user } = useSelector((state) => state.auth);
   const { currentTenant } = useSelector((state) => state.tenant);
@@ -51,32 +52,52 @@ const Sidebar = () => {
     : '??';
 
   return (
-    <aside
-      style={{ width: 'var(--sidebar-width)' }}
-      className="fixed left-0 top-0 h-screen bg-[#0a0a0a] flex flex-col z-30 border-r border-[#1f2937]"
-    >
-      {/* Brand */}
-      <div className="px-5 py-5 border-b border-[#1f2937]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <Zap size={16} className="text-[#111111]" />
-          </div>
-          <div>
-            <p className="text-white text-sm font-semibold leading-tight">SupportDesk</p>
-            {currentTenant && (
-              <p className="text-[#9ca3af] text-xs truncate max-w-[140px]">{currentTenant.name}</p>
-            )}
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-20 md:hidden animate-fade-in"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      <aside
+        style={{ width: 'var(--sidebar-width)' }}
+        className={`fixed left-0 top-0 h-screen bg-[#0a0a0a] flex flex-col z-30 border-r border-[#1f2937] transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        {/* Brand */}
+        <div className="px-5 py-5 border-b border-[#1f2937]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <Zap size={16} className="text-[#111111]" />
+              </div>
+              <div>
+                <p className="text-white text-sm font-semibold leading-tight">SupportDesk</p>
+                {currentTenant && (
+                  <p className="text-[#9ca3af] text-xs truncate max-w-[140px]">{currentTenant.name}</p>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="md:hidden text-[#9ca3af] hover:text-white"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Navigation */}
+        {/* Navigation */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
         <ul className="space-y-0.5">
           {visibleItems.map(({ label, path, icon: Icon }) => (
             <li key={path}>
               <NavLink
                 to={`/${tenantSlug}/${path}`}
+                onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   [
                     'flex items-center gap-3 px-3 py-2 rounded-[8px] text-sm font-medium transition-all duration-150',
@@ -114,6 +135,7 @@ const Sidebar = () => {
         </div>
       </div>
     </aside>
+    </>
   );
 };
 
