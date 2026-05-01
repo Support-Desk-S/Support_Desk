@@ -38,4 +38,5 @@ export const config = {
     PINECONE_KEY: process.env.PINECONE_KEY || "",
     PINECONE_INDEX_NAME: process.env.PINECONE_INDEX_NAME || "",
     MISTRAL_KEY: process.env.MISTRALAI_KEY || "",
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || "default_secure_key_must_be_32byt",
 }

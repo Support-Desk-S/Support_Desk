@@ -190,3 +190,23 @@ export const addAicontextService = async (tenantId, file) => {
         throw err;
     }
 }
+
+export const updateIntegrations = async (tenantId, integrations) => {
+    // Encrypt API keys if necessary
+    const { encrypt } = await import('../utils/encryption.js');
+    const processedIntegrations = integrations.map(int => {
+        if (int.auth && int.auth.key && !int.auth.key.includes(':')) {
+             // Basic check if already encrypted (our format is iv:encrypted)
+            int.auth.key = encrypt(int.auth.key);
+        }
+        return int;
+    });
+
+    const tenant = await tenantDAO.getTenantById(tenantId);
+    if (!tenant) throw new AppError("Tenant not found", 404);
+
+    tenant.integrations = processedIntegrations;
+    await tenant.save();
+
+    return tenant;
+}

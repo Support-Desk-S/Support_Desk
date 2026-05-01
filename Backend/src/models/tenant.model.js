@@ -30,6 +30,35 @@ const tenantSchema = new mongoose.Schema({
         ],
         default: []
       },
+      integrations: {
+          type: [
+              {
+                  name: { type: String, required: true },
+                  baseUrl: { type: String, required: true },
+                  auth: {
+                      type: { type: String, enum: ['apiKey', 'bearer', 'none'], default: 'none' },
+                      key: { type: String }, // Encrypted
+                      headerName: { type: String } // e.g. "Authorization" or "x-api-key"
+                  },
+                  endpoints: [
+                      {
+                          name: { type: String, required: true }, // unique tool name
+                          path: { type: String, required: true },
+                          method: { type: String, enum: ['GET', 'POST', 'PUT', 'DELETE'], default: 'GET' },
+                          description: { type: String, required: true },
+                          params: [
+                              {
+                                  name: { type: String, required: true },
+                                  type: { type: String, enum: ['string', 'number', 'boolean'], default: 'string' },
+                                  required: { type: Boolean, default: false }
+                              }
+                          ]
+                      }
+                  ]
+              }
+          ],
+          default: []
+      }
     },
     { timestamps: true }
 );

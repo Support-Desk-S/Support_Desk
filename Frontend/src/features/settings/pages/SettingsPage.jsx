@@ -5,6 +5,7 @@ import SettingsTabs from "../components/SettingsTabs";
 import WorkspaceSection from "../components/WorkspaceSection";
 import ProfileSection from "../components/ProfileSection";
 import SecuritySection from "../components/SecuritySection";
+import IntegrationsSection from "../components/IntegrationsSection";
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState("General");
@@ -28,6 +29,12 @@ const SettingsPage = () => {
       )}
 
       {activeTab === "Security" && <SecuritySection />}
+
+      {activeTab === "Integrations" && (
+        <div className="space-y-6 max-w-4xl">
+          <IntegrationsSection />
+        </div>
+      )}
     </DashboardLayout>
   );
 };
