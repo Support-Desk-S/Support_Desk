@@ -230,9 +230,17 @@ const WidgetsPage = () => {
           </div>
         )}
         <div className="mt-4 p-4 bg-[#f8f9fa] rounded-[10px] border border-[#e5e7eb]">
-          <p className="text-xs font-semibold text-[#111111] mb-2">Embed Code</p>
-          <code className="text-xs text-[#6b7280] break-all font-mono">
-            {`<script src="https://yourplatform.com/widget.js" data-widget-id="${keysModalWidget?._id}"></script>`}
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-[#111111]">Embed Code</p>
+            <button
+              onClick={() => copyKey(`<script src="http://localhost:5173/widget.js" data-api-key="${apiKeys[0]?.key || 'YOUR_API_KEY'}" id="support-desk-widget"></script>`)}
+              className="flex items-center gap-1.5 text-xs text-[#6b7280] hover:text-[#111111] transition-colors font-medium"
+            >
+              <Copy size={12} /> Copy Code
+            </button>
+          </div>
+          <code className="text-[11px] text-[#6b7280] break-all font-mono block bg-white p-2.5 rounded border border-[#e5e7eb]">
+            {`<script src="http://localhost:5173/widget.js" data-api-key="${apiKeys[0]?.key || 'YOUR_API_KEY'}" id="support-desk-widget"></script>`}
           </code>
         </div>
       </Modal>
