@@ -21,7 +21,7 @@ export const getApiKeysByWidget = async (chatWidgetId, tenantId) => {
     chatWidgetId,
     tenantId,
   })
-    .select("-key") // Don't return full key
+    .select("+key") // Include full key for UI
     .sort({ createdAt: -1 });
 
   return apiKeys;

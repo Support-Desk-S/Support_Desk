@@ -91,10 +91,17 @@ export const getAvailableAgent = async (tenantId) => {
       })
     );
 
-    // Sort by ticket count and get the one with least tickets
-    agentWithTicketCounts.sort((a, b) => a.ticketCount - b.ticketCount);
+    // Filter out agents with 5 or more tickets
+    const availableAgents = agentWithTicketCounts.filter(a => a.ticketCount < 5);
 
-    return agentWithTicketCounts[0];
+    if (availableAgents.length === 0) {
+      return null;
+    }
+
+    // Sort by ticket count and get the one with least tickets
+    availableAgents.sort((a, b) => a.ticketCount - b.ticketCount);
+
+    return availableAgents[0];
   } catch (error) {
     console.error("Error in getAvailableAgent:", error);
     throw error;
@@ -116,4 +123,34 @@ export const updateTicket = async (ticketId, updateData) => {
   );
 
   return ticket;
+};
+
+/**
+ * Get full conversation history for a ticket (all senders)
+ *
+ * @param {string} ticketId - MongoDB ObjectId of the ticket
+ * @param {number} limit - Max messages to return (default 50)
+ * @returns {Promise<Array>} - Array of messages sorted oldest first
+ */
+export const getConversationHistory = async (ticketId, limit = 50) => {
+  const messages = await Message.find({ ticketId })
+    .sort({ createdAt: 1 })
+    .limit(limit)
+    .lean();
+  return messages;
+};
+
+/**
+ * Get available approved agents for a tenant (for reassignment dropdown)
+ *
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @returns {Promise<Array>} - Array of agent objects
+ */
+export const getApprovedAgents = async (tenantId) => {
+  const agents = await User.find({
+    tenantId,
+    role: 'agent',
+    isApproved: true,
+  }).select('name email isOnline').lean();
+  return agents;
 };

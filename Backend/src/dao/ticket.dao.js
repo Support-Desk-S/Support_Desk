@@ -80,3 +80,51 @@ export const countTicketsByStatus = async (tenantId, status) => {
 export const countTicketsByTenant = async (tenantId) => {
   return await Ticket.countDocuments({ tenantId });
 };
+
+/**
+ * Get a single ticket by ID for a specific tenant
+ *
+ * @param {string} ticketId - MongoDB ObjectId of the ticket
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @returns {Promise<Object|null>} - Ticket object with populated assignedTo
+ */
+export const getTicketById = async (ticketId, tenantId) => {
+  const ticket = await Ticket.findOne({ _id: ticketId, tenantId })
+    .populate('assignedTo', 'name email isOnline')
+    .lean();
+  return ticket;
+};
+
+/**
+ * Update ticket status
+ *
+ * @param {string} ticketId - MongoDB ObjectId of the ticket
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @param {string} status - New status value
+ * @returns {Promise<Object|null>} - Updated ticket
+ */
+export const updateTicketStatus = async (ticketId, tenantId, status) => {
+  const ticket = await Ticket.findOneAndUpdate(
+    { _id: ticketId, tenantId },
+    { status, updatedAt: Date.now() },
+    { new: true }
+  ).populate('assignedTo', 'name email isOnline');
+  return ticket;
+};
+
+/**
+ * Assign/reassign a ticket to an agent
+ *
+ * @param {string} ticketId - MongoDB ObjectId of the ticket
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @param {string} agentId - MongoDB ObjectId of the agent to assign
+ * @returns {Promise<Object|null>} - Updated ticket
+ */
+export const assignTicket = async (ticketId, tenantId, agentId) => {
+  const ticket = await Ticket.findOneAndUpdate(
+    { _id: ticketId, tenantId },
+    { assignedTo: agentId, status: 'assigned', updatedAt: Date.now() },
+    { new: true }
+  ).populate('assignedTo', 'name email isOnline');
+  return ticket;
+};
