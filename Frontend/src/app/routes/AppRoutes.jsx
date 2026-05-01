@@ -2,7 +2,9 @@ import { Routes, Route, Navigate, Outlet } from "react-router";
 import AuthPage from "../../features/auth/pages/AuthPage";
 import DashboardPage from "../../features/dashboard/pages/DashboardPage";
 import TicketsPage from "../../features/tickets/pages/TicketsPage";
+import TicketDetailPage from "../../features/tickets/pages/TicketDetailPage";
 import AgentsPage from "../../features/agents/pages/AgentsPage";
+import ChatWidgetPage from "../../features/widgets/pages/ChatWidgetPage";
 import WidgetsPage from "../../features/widgets/pages/WidgetsPage";
 import AiContextPage from "../../features/ai-context/pages/AiContextPage";
 import SettingsPage from "../../features/settings/pages/SettingsPage";
@@ -24,6 +26,9 @@ const AppRoutes = () => {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/" element={<Navigate to="/auth" replace />} />
 
+      {/* Public: Embed Widget */}
+      <Route path="/embed/chat" element={<ChatWidgetPage />} />
+
       {/* Tenant-scoped routes */}
       <Route path="/:tenantSlug" element={<TenantLoader />}>
         {/* All tenant routes require auth */}
@@ -40,7 +45,9 @@ const AppRoutes = () => {
           {/* Agent + Admin */}
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="tickets" element={<TicketsPage />} />
+          <Route path="tickets/:ticketId" element={<TicketDetailPage />} />
           <Route path="settings" element={<SettingsPage />} />
+
 
           {/* Admin only */}
           <Route
