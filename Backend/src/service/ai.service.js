@@ -21,10 +21,10 @@ const mistralChat = new ChatMistralAI({
  * @returns {Promise<Object>} - {response, ticketId, isTicketCreated, message}
  *
  * @description
- * - Gets embeddings for the customer message
- * - Queries vector DB for similar documents
+ * - Creates a ticket
+ * - Extracts keywords and queries vector DB for similar documents
  * - If relevant data found → generates AI response
- * - If no relevant data → creates ticket and assigns to available agent
+ * - If no relevant data → assigns to available agent
  */
 export const processCustomerMessage = async (
   customerMessage,
@@ -32,25 +32,42 @@ export const processCustomerMessage = async (
   tenantId
 ) => {
   try {
-    // Step 1: Get embeddings for the customer message
-    const embeddingsData = await getEmbeddings(customerMessage);
+    // Step 1: ALWAYS create a ticket first for a new conversation thread to preserve history
+    const ticket = await ticketDAO.createTicket({
+      tenantId,
+      customerEmail,
+      subject: customerMessage.substring(0, 200),
+    });
 
+    // Save customer's initial message to the ticket thread
+    await messageDAO.createMessage({
+      ticketId: ticket._id,
+      sender: "customer",
+      message: customerMessage,
+    });
+
+    // Step 2: Extract keywords and search Pinecone
+    const keywords = await mistralChat.invoke([
+      {
+        role: "user",
+        content: `Extract the main topic or keywords from this customer query. Output ONLY the keywords, nothing else.\nQuery: "${customerMessage}"`,
+      },
+    ]);
+    const searchQuery = keywords.content || customerMessage;
+
+    const embeddingsData = await getEmbeddings(searchQuery);
     if (!embeddingsData || embeddingsData.length === 0) {
       throw new AppError("Failed to generate embeddings", 500);
     }
 
-    // Use the first embedding (main query)
-    const messageEmbedding = embeddingsData[0].embedding;
-
-    // Step 2: Query vector DB for similar documents
     const searchResults = await index.query({
-      vector: messageEmbedding,
-      topK: 5,
+      vector: embeddingsData[0].embedding,
+      topK: 3,
       includeMetadata: true,
+      filter: { tenantId: tenantId.toString() },
     });
 
-    // Check if we found relevant data (similarity threshold)
-    const SIMILARITY_THRESHOLD = 0.6;
+    const SIMILARITY_THRESHOLD = 0.4;
     const relevantResults = searchResults.matches.filter(
       (match) => match.score >= SIMILARITY_THRESHOLD
     );
@@ -59,17 +76,24 @@ export const processCustomerMessage = async (
     if (relevantResults.length > 0) {
       const contextData = relevantResults
         .map((match) => match.metadata?.text || "")
-        .join("\n\n");
+        .join("\n\n---\n\n");
 
-      const aiPrompt = `You are a helpful support agent. Based on the following knowledge base information, answer the customer's question concisely and helpfully.
+      const aiPrompt = `You are a professional and friendly customer support assistant. Your task is to answer the customer's question accurately using only the information provided in the knowledge base below.
 
-Knowledge Base:
+RULES:
+- Answer based ONLY on the knowledge base information provided
+- Be concise, clear, and professional
+- If the knowledge base contains a direct answer, provide it confidently
+- Format your response in a readable way
+- Do NOT make up information not in the knowledge base
+
+KNOWLEDGE BASE:
 ${contextData}
 
-Customer Question:
+CUSTOMER QUESTION:
 ${customerMessage}
 
-Provide a clear and concise answer based on the knowledge base information.`;
+Provide a helpful, accurate answer:`;
 
       const aiResponse = await mistralChat.invoke([
         {
@@ -78,37 +102,41 @@ Provide a clear and concise answer based on the knowledge base information.`;
         },
       ]);
 
-      const responseText =
-        aiResponse.content || "I apologize, but I couldn't generate a response.";
+      const responseText = aiResponse.content || "I apologize, but I couldn't generate a response.";
+
+      // Save AI response to the ticket thread
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "ai",
+        message: responseText,
+      });
 
       return {
         success: true,
-        isTicketCreated: false,
+        isTicketCreated: true,
+        ticketId: ticket._id,
         response: responseText,
         message: "Query resolved from knowledge base",
         confidence: relevantResults[0].score,
       };
     }
 
-    // Step 4: No relevant data found - create ticket and assign to agent
-    const ticket = await ticketDAO.createTicket({
-      tenantId,
-      customerEmail,
-      subject: customerMessage.substring(0, 200), // Use first 200 chars as subject
-    });
-
-    // Get available agent (with least assigned tickets)
+    // Step 4: No relevant data found - assign to agent
     const availableAgent = await messageDAO.getAvailableAgent(tenantId);
 
     if (availableAgent) {
-      // Assign ticket to agent
       await messageDAO.updateTicket(ticket._id, {
         assignedTo: availableAgent._id,
         status: "assigned",
       });
 
-      // Create AI notification message
-      const notificationMessage = `Thank you for reaching out. Your query requires human attention and has been assigned to our support team. An agent will respond shortly.`;
+      const notificationMessage = `I couldn't find an exact answer in our knowledge base, so I've transferred your chat to ${availableAgent.name}. They've been notified and will respond here shortly!\n\nFeel free to add any extra details that might help them.`;
+
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "ai",
+        message: notificationMessage,
+      });
 
       return {
         success: true,
@@ -120,8 +148,13 @@ Provide a clear and concise answer based on the knowledge base information.`;
         message: "Ticket created and assigned to nearest available agent",
       };
     } else {
-      // No agents available, but still create ticket
-      const notificationMessage = `Thank you for reaching out. Your query has been recorded and will be addressed by our support team as soon as an agent becomes available.`;
+      const notificationMessage = `I'm unable to answer that from our knowledge base. I've successfully escalated your request to our human support team! \n\nThey will review this conversation and get back to you as soon as they are available. Ticket reference: #${ticket._id.toString().slice(-8).toUpperCase()}`;
+
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "ai",
+        message: notificationMessage,
+      });
 
       return {
         success: true,
@@ -129,11 +162,93 @@ Provide a clear and concise answer based on the knowledge base information.`;
         ticketId: ticket._id,
         assignedAgentId: null,
         response: notificationMessage,
-        message: "Ticket created. No agents currently available.",
+        message: "Ticket created and left in queue",
       };
     }
   } catch (error) {
     console.error("Error in processCustomerMessage:", error);
+    throw new AppError("Failed to process message with AI", 500);
+  }
+};
+
+/**
+ * Generate an AI reply suggestion for a human agent
+ *
+ * @param {string} ticketId - MongoDB ObjectId of the ticket
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @returns {Promise<string>} - AI-suggested reply text
+ */
+export const generateAgentReplySuggestion = async (ticketId, tenantId) => {
+  try {
+    const messages = await messageDAO.getConversationHistory(ticketId, 10);
+
+    if (!messages || messages.length === 0) {
+      throw new AppError("No conversation history found for this ticket", 404);
+    }
+
+    const latestCustomerMsg = [...messages]
+      .reverse()
+      .find((m) => m.sender === "customer");
+
+    if (!latestCustomerMsg) {
+      throw new AppError("No customer message found in ticket", 404);
+    }
+
+    const conversationContext = messages
+      .map((m) => {
+        const role =
+          m.sender === "customer"
+            ? "Customer"
+            : m.sender === "agent"
+            ? "Support Agent"
+            : "AI";
+        return `[${role}]: ${m.message}`;
+      })
+      .join("\n");
+
+    // Query KB for relevant context
+    let kbContext = "";
+    try {
+      const embeddingsData = await getEmbeddings(latestCustomerMsg.message);
+      if (embeddingsData && embeddingsData.length > 0) {
+        const searchResults = await index.query({
+          vector: embeddingsData[0].embedding,
+          topK: 3,
+          includeMetadata: true,
+        });
+        const relevant = searchResults.matches.filter((m) => m.score >= 0.35);
+        if (relevant.length > 0) {
+          kbContext = relevant.map((r) => r.metadata?.text || "").join("\n\n");
+        }
+      }
+    } catch (kbError) {
+      console.warn("[generateAgentReplySuggestion] KB query failed:", kbError.message);
+    }
+
+    const prompt = `You are an experienced customer support specialist helping a human agent craft a professional reply.
+
+CONVERSATION HISTORY:
+${conversationContext}
+
+${kbContext ? `RELEVANT KNOWLEDGE BASE INFORMATION:\n${kbContext}\n` : ""}
+TASK: Write a professional, empathetic reply from the support agent to the customer's latest message. The reply should:
+- Directly address the customer's specific question or concern
+- Be warm but professional in tone
+- Be concise (2-4 sentences unless a detailed response is needed)
+- NOT start with "I" — vary the sentence structure
+- NOT include filler phrases like "Certainly!", "Of course!", "Absolutely!"
+- Sound like it was written by a human, not a bot
+
+Write ONLY the reply text (no labels, no preamble):`;
+
+    const aiResponse = await mistralChat.invoke([{ role: "user", content: prompt }]);
+
+    return (
+      aiResponse.content ||
+      "Thank you for reaching out. Let me look into this for you right away."
+    );
+  } catch (error) {
+    console.error("Error in generateAgentReplySuggestion:", error);
     throw error;
   }
 };
@@ -152,20 +267,9 @@ export const generateAIResponse = async (message, conversationContext = []) => {
       .map((msg) => `${msg.sender}: ${msg.message}`)
       .join("\n");
 
-    const prompt = `You are a helpful support agent. Here is the conversation context:
+    const prompt = `You are a helpful support agent. Here is the conversation context:\n\n${contextString}\n\nCustomer: ${message}\n\nProvide a helpful response.`;
 
-${contextString}
-
-Customer: ${message}
-
-Provide a helpful response.`;
-
-    const aiResponse = await mistralChat.invoke([
-      {
-        role: "user",
-        content: prompt,
-      },
-    ]);
+    const aiResponse = await mistralChat.invoke([{ role: "user", content: prompt }]);
 
     return aiResponse.content || "I apologize for the inconvenience.";
   } catch (error) {
@@ -201,5 +305,85 @@ export const queryVectorDB = async (query, topK = 5) => {
   } catch (error) {
     console.error("Error in queryVectorDB:", error);
     throw error;
+  }
+};
+
+/**
+ * Process a follow-up message from a customer
+ */
+export const processFollowUpMessage = async (ticket, messageContent, tenantId) => {
+  try {
+    // If ticket is already assigned, just acknowledge
+    if (ticket.assignedTo) {
+      const ackMessage = `I've added this to your ticket. Your assigned agent will review it shortly!`;
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "ai",
+        message: ackMessage,
+      });
+      return;
+    }
+
+    // If not assigned, try to answer with KB
+    const keywords = await mistralChat.invoke([
+      {
+        role: "user",
+        content: `Extract the main topic or keywords from this customer query. Output ONLY the keywords, nothing else.\nQuery: "${messageContent}"`,
+      },
+    ]);
+    const searchQuery = keywords.content || messageContent;
+
+    const embeddingsData = await getEmbeddings(searchQuery);
+    if (!embeddingsData || embeddingsData.length === 0) return;
+
+    const searchResults = await index.query({
+      vector: embeddingsData[0].embedding,
+      topK: 3,
+      includeMetadata: true,
+      filter: { tenantId: tenantId.toString() },
+    });
+
+    const SIMILARITY_THRESHOLD = 0.4;
+    const relevantResults = searchResults.matches.filter(
+      (match) => match.score >= SIMILARITY_THRESHOLD
+    );
+
+    if (relevantResults.length > 0) {
+      const contextData = relevantResults
+        .map((match) => match.metadata?.text || "")
+        .join("\n\n---\n\n");
+
+      const aiPrompt = `You are a professional and friendly customer support assistant. Answer the customer's question accurately using only the knowledge base below. If the knowledge base does not contain a direct answer, simply say "I don't know". Do not add anything else if you don't know.
+
+KNOWLEDGE BASE:
+${contextData}
+
+CUSTOMER QUESTION:
+${messageContent}
+
+Provide a helpful, accurate answer:`;
+
+      const aiResponse = await mistralChat.invoke([{ role: "user", content: aiPrompt }]);
+      const responseText = aiResponse.content || "I don't know";
+
+      if (!responseText.toLowerCase().includes("i don't know")) {
+        await messageDAO.createMessage({
+          ticketId: ticket._id,
+          sender: "ai",
+          message: responseText,
+        });
+        return;
+      }
+    }
+
+    // If we couldn't answer, just acknowledge
+    const ackMessage = `I've updated your ticket with this information. Our support team will review it as soon as possible.`;
+    await messageDAO.createMessage({
+      ticketId: ticket._id,
+      sender: "ai",
+      message: ackMessage,
+    });
+  } catch (error) {
+    console.error("Error in processFollowUpMessage:", error);
   }
 };

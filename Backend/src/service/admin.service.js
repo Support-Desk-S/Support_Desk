@@ -134,17 +134,39 @@ export const addAicontextService = async (tenantId, file) => {
         try {
             const loader = new PDFLoader(tempFilePath);
             const documents = await loader.load();
-            const text = documents.map(doc => doc.pageContent).join("\n");
             
-            console.log("Extracted PDF text length:", text.length);
-            console.log("Full extracted text:\n", text);
+            // Extract and normalize text for better chunk quality
+            let text = documents.map(doc => doc.pageContent).join("\n");
+            
+            console.log(`[addAicontextService] Raw extracted text length: ${text.length} chars`);
+            
+            // Text normalization for better chunking:
+            // 1. Replace multiple whitespaces with single space
+            text = text.replace(/\s+/g, ' ');
+            // 2. Properly format FAQ structure with double newlines
+            text = text.replace(/(\?)\s+([A-Z])/g, '$1\n\n$2');
+            text = text.replace(/\n([A-Z].*?\?)/g, '\n\nQ: $1');
+            // 3. Add proper line breaks for readability
+            text = text.replace(/\.\s+/g, '.\n');
+            // 4. Clean up extra spaces
+            text = text.trim();
+            
+            console.log(`[addAicontextService] Normalized text length: ${text.length} chars`);
             console.log("=".repeat(50));
 
             const embeddings = await getEmbeddings(text);
-            console.log("Number of chunks created:", embeddings.length);
+            console.log(`[addAicontextService] Number of chunks created: ${embeddings.length}`);
+            
+            // Verify chunks aren't empty
+            const validEmbeddings = embeddings.filter(e => e.chunk && e.chunk.trim().length > 0);
+            console.log(`[addAicontextService] Valid chunks after filtering: ${validEmbeddings.length}`);
+
+            if (validEmbeddings.length === 0) {
+              throw new AppError("No valid content chunks created from PDF", 400);
+            }
 
             await index.upsert({
-              records : embeddings.map((item, index) => ({
+              records : validEmbeddings.map((item, index) => ({
                 id: `${tenantId}-${file.originalname}-${index}`,
                 values: item.embedding,
                 metadata:{
@@ -154,6 +176,8 @@ export const addAicontextService = async (tenantId, file) => {
                 }
               }))
             });
+            
+            console.log(`[addAicontextService] Successfully upserted ${validEmbeddings.length} chunks to Pinecone`);
             const tenant = await tenantDAO.addAIContext(tenantId, result.url);
             return tenant;
         } finally {
