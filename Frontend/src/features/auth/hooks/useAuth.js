@@ -4,9 +4,15 @@ import {
   tenantRegisterApi,
   getMeApi,
   registerApi,
+  updatePasswordApi,
 } from "../services/auth.service";
 import { getTenantBySlugApi } from "../../tenant/services/tenant.service";
-import { setUser, setLoading, logout, setInitialized } from "../state/authSlice";
+import {
+  setUser,
+  setLoading,
+  logout,
+  setInitialized,
+} from "../state/authSlice";
 import { setTenant } from "../../tenant/state/tenantSlice";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
@@ -104,8 +110,15 @@ export const useAuth = () => {
       const tenant = tenantRes.data.data;
 
       // 2. Register agent under that tenant
-      const res = await registerApi({ name, email, password, tenantId: tenant._id });
-      toast.success(res.data.message || 'Registration successful! Await admin approval.');
+      const res = await registerApi({
+        name,
+        email,
+        password,
+        tenantId: tenant._id,
+      });
+      toast.success(
+        res.data.message || "Registration successful! Await admin approval.",
+      );
 
       // 3. Don't auto-login — agent needs admin approval first
       // Just switch them to the Sign In tab (caller handles tab switch)
@@ -118,5 +131,30 @@ export const useAuth = () => {
     }
   };
 
-  return { login, registerTenant, registerAgent, loading, loadUser, handleLogout };
+  const updatePassword = async (data) => {
+    try {
+      dispatch(setLoading(true));
+
+      const res = await updatePasswordApi(data);
+
+      toast.success(res.data.message);
+
+      dispatch(logout());
+      navigate("/auth");
+    } catch (err) {
+      handleError(err);
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  return {
+    login,
+    registerTenant,
+    registerAgent,
+    loading,
+    loadUser,
+    handleLogout,
+    updatePassword,
+  };
 };
