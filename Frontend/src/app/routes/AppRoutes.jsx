@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate, Outlet } from "react-router";
+import LandingPage from "../../features/landing/pages/LandingPage";
+import DocsPage from "../../features/docs/pages/DocsPage";
 import AuthPage from "../../features/auth/pages/AuthPage";
 import DashboardPage from "../../features/dashboard/pages/DashboardPage";
 import TicketsPage from "../../features/tickets/pages/TicketsPage";
@@ -22,9 +24,10 @@ import NotFoundPage from "../../shared/components/pages/NotFoundPage";
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public: Auth */}
+      {/* Public Pages */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/docs" element={<DocsPage />} />
       <Route path="/auth" element={<AuthPage />} />
-      <Route path="/" element={<Navigate to="/auth" replace />} />
 
       {/* Public: Embed Widget */}
       <Route path="/embed/chat" element={<ChatWidgetPage />} />
