@@ -1,10 +1,10 @@
 import { ChatMistralAI } from "@langchain/mistralai";
 import { config } from "../config/config.js";
 import { index } from "../config/vectorDb.js";
-import { getEmbeddings } from "../utils/getEmbeddings.js";
 import * as messageDAO from "../dao/message.dao.js";
 import * as ticketDAO from "../dao/ticket.dao.js";
 import AppError from "../utils/appError.js";
+import { getEmbeddings } from "../utils/getEmbeddings.js";
 import { tryTenantAPIs } from "./toolExecutor.service.js";
 
 const mistralChat = new ChatMistralAI({
@@ -12,6 +12,34 @@ const mistralChat = new ChatMistralAI({
   model: "mistral-large-latest",
   temperature: 0.7,
 });
+
+const detectQueryType = async (message) => {
+  const response = await mistralChat.invoke([
+    {
+      role: "user",
+      content: `
+Classify the following customer query into ONE of these categories:
+
+1. GENERAL (questions about policies, services, info)
+2. PERSONAL (questions about user's order, refund, account, status)
+
+Rules:
+- PERSONAL includes words like: my, refund status, my order, my account
+- GENERAL includes: policy, how it works, pricing
+
+Return ONLY one word: GENERAL or PERSONAL
+
+Query: "${message}"
+      `,
+    },
+  ]);
+
+  return response.content.trim().toUpperCase().includes("PERSONAL")
+    ? "PERSONAL"
+    : "GENERAL";
+};
+
+
 
 /**
  * Process customer message and generate AI response or create ticket
@@ -33,6 +61,111 @@ export const processCustomerMessage = async (
   tenantId
 ) => {
   try {
+
+
+    // STEP 0: Keyword Guard (FAST)
+
+    const sensitiveKeywords = [
+        "track",
+  "status",
+  "not received",
+  "where is",
+  "refund status",
+    ];
+
+    const lowerMsg = customerMessage.toLowerCase();
+
+    const isSensitive = sensitiveKeywords.some((keyword) =>
+      lowerMsg.includes(keyword)
+    );
+
+    // ✅ STEP 1: Intent Detection (AI)
+    const queryType = await detectQueryType(customerMessage);
+
+    // ✅ STEP 2: HANDLE PERSONAL QUERIES
+    // ================================
+    const isActionQuery =
+    lowerMsg.includes("track my") ||
+    lowerMsg.includes("where is my") ||
+    lowerMsg.includes("my order") ||
+    lowerMsg.includes("not received") ||
+    lowerMsg.includes("order status");
+
+  if (isActionQuery || queryType === "PERSONAL") {
+    // 🔌 Try Tenant APIs first
+    const apiResult = await tryTenantAPIs({ tenantId, customerMessage });
+
+    if (apiResult && apiResult.success) {
+      return {
+        success: true,
+        isTicketCreated: false,
+        ticketId: null,
+        response: apiResult.response,
+        message: "Query resolved from tenant APIs",
+      };
+    }
+
+    // ❌ API failed → DIRECTLY go to agent (skip AI)
+
+    // Step 3: Assign agent immediately
+    const availableAgent = await messageDAO.getAvailableAgent(tenantId);
+
+    let ticket;
+    let notificationMessage;
+
+    if (availableAgent) {
+      ticket = await ticketDAO.createTicket({
+        tenantId,
+        customerEmail,
+        subject: customerMessage.substring(0, 200),
+        status: "assigned",
+        assignedTo: availableAgent._id,
+      });
+
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "customer",
+        message: customerMessage,
+      });
+
+      notificationMessage = `I've connected you with ${availableAgent.name} for further assistance.`;
+
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "ai",
+        message: notificationMessage,
+      });
+
+      return {
+        success: true,
+        isTicketCreated: true,
+        ticketId: ticket._id,
+        assignedAgentId: availableAgent._id,
+        response: notificationMessage,
+      };
+    } else {
+      ticket = await ticketDAO.createTicket({
+        tenantId,
+        customerEmail,
+        subject: customerMessage.substring(0, 200),
+        status: "open",
+      });
+
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "customer",
+        message: customerMessage,
+      });
+
+      return {
+        success: true,
+        isTicketCreated: true,
+        ticketId: ticket._id,
+        response: "Your request has been sent to support team.",
+      };
+    }
+  }
+
     // Step 1: Extract keywords and search Pinecone
     const keywords = await mistralChat.invoke([
       {
@@ -43,6 +176,7 @@ export const processCustomerMessage = async (
     const searchQuery = keywords.content || customerMessage;
 
     const embeddingsData = await getEmbeddings(searchQuery);
+
     if (!embeddingsData || embeddingsData.length === 0) {
       throw new AppError("Failed to generate embeddings", 500);
     }
@@ -54,13 +188,16 @@ export const processCustomerMessage = async (
       filter: { tenantId: tenantId.toString() },
     });
 
-    const SIMILARITY_THRESHOLD = 0.4;
+    const SIMILARITY_THRESHOLD = 0.6;
     const relevantResults = searchResults.matches.filter(
       (match) => match.score >= SIMILARITY_THRESHOLD
     );
 
     // Step 2: If relevant data found, generate AI response
-    if (relevantResults.length > 0) {
+    if (
+      relevantResults.length > 0 &&
+      relevantResults[0].score > 0.65
+    ){
       const contextData = relevantResults
         .map((match) => match.metadata?.text || "")
         .join("\n\n---\n\n");
@@ -91,8 +228,11 @@ Provide a helpful, accurate answer:`;
 
       const responseText = aiResponse.content || "I DO NOT KNOW";
 
-      if (!responseText.includes("I DO NOT KNOW")) {
-        // No ticket created, just return the response
+      // ✅ Only accept if confident
+      if (
+        !responseText.toLowerCase().includes("i do not know") &&
+        relevantResults[0].score > 0.6
+      ) {
         return {
           success: true,
           isTicketCreated: false,
@@ -104,16 +244,19 @@ Provide a helpful, accurate answer:`;
       }
     }
 
+   
+
     // Step 2.5: Try Tenant APIs before falling back to agent
     const apiResult = await tryTenantAPIs({ tenantId, customerMessage });
+
     if (apiResult && apiResult.success) {
-        return {
-            success: true,
-            isTicketCreated: false,
-            ticketId: null,
-            response: apiResult.response,
-            message: "Query resolved from tenant APIs",
-        };
+      return {
+        success: true,
+        isTicketCreated: false,
+        ticketId: null,
+        response: apiResult.response,
+        message: "Query resolved from tenant APIs",
+      };
     }
 
     // Step 3: No relevant data found - check for available agent
@@ -188,6 +331,8 @@ Provide a helpful, accurate answer:`;
         message: "Ticket created and left in queue",
       };
     }
+
+
   } catch (error) {
     console.error("Error in processCustomerMessage:", error);
     throw new AppError("Failed to process message with AI", 500);
@@ -223,8 +368,8 @@ export const generateAgentReplySuggestion = async (ticketId, tenantId) => {
           m.sender === "customer"
             ? "Customer"
             : m.sender === "agent"
-            ? "Support Agent"
-            : "AI";
+              ? "Support Agent"
+              : "AI";
         return `[${role}]: ${m.message}`;
       })
       .join("\n");
