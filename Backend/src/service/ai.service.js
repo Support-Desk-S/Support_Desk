@@ -84,81 +84,87 @@ export const processCustomerMessage = async (
 
     // ✅ STEP 2: HANDLE PERSONAL QUERIES
     // ================================
-    if (isSensitive) {
-      // 🔌 Try Tenant APIs first
-      const apiResult = await tryTenantAPIs({ tenantId, customerMessage });
+    const isActionQuery =
+    lowerMsg.includes("track my") ||
+    lowerMsg.includes("where is my") ||
+    lowerMsg.includes("my order") ||
+    lowerMsg.includes("not received") ||
+    lowerMsg.includes("order status");
 
-      if (apiResult && apiResult.success) {
-        return {
-          success: true,
-          isTicketCreated: false,
-          ticketId: null,
-          response: apiResult.response,
-          message: "Query resolved from tenant APIs",
-        };
-      }
+  if (isActionQuery || queryType === "PERSONAL") {
+    // 🔌 Try Tenant APIs first
+    const apiResult = await tryTenantAPIs({ tenantId, customerMessage });
 
-      // ❌ API failed → DIRECTLY go to agent (skip AI)
-
-      // Step 3: Assign agent immediately
-      const availableAgent = await messageDAO.getAvailableAgent(tenantId);
-
-      let ticket;
-      let notificationMessage;
-
-      if (availableAgent) {
-        ticket = await ticketDAO.createTicket({
-          tenantId,
-          customerEmail,
-          subject: customerMessage.substring(0, 200),
-          status: "assigned",
-          assignedTo: availableAgent._id,
-        });
-
-        await messageDAO.createMessage({
-          ticketId: ticket._id,
-          sender: "customer",
-          message: customerMessage,
-        });
-
-        notificationMessage = `I've connected you with ${availableAgent.name} for further assistance.`;
-
-        await messageDAO.createMessage({
-          ticketId: ticket._id,
-          sender: "ai",
-          message: notificationMessage,
-        });
-
-        return {
-          success: true,
-          isTicketCreated: true,
-          ticketId: ticket._id,
-          assignedAgentId: availableAgent._id,
-          response: notificationMessage,
-        };
-      } else {
-        ticket = await ticketDAO.createTicket({
-          tenantId,
-          customerEmail,
-          subject: customerMessage.substring(0, 200),
-          status: "open",
-        });
-
-        await messageDAO.createMessage({
-          ticketId: ticket._id,
-          sender: "customer",
-          message: customerMessage,
-        });
-
-        return {
-          success: true,
-          isTicketCreated: true,
-          ticketId: ticket._id,
-          response: "Your request has been sent to support team.",
-        };
-      }
+    if (apiResult && apiResult.success) {
+      return {
+        success: true,
+        isTicketCreated: false,
+        ticketId: null,
+        response: apiResult.response,
+        message: "Query resolved from tenant APIs",
+      };
     }
 
+    // ❌ API failed → DIRECTLY go to agent (skip AI)
+
+    // Step 3: Assign agent immediately
+    const availableAgent = await messageDAO.getAvailableAgent(tenantId);
+
+    let ticket;
+    let notificationMessage;
+
+    if (availableAgent) {
+      ticket = await ticketDAO.createTicket({
+        tenantId,
+        customerEmail,
+        subject: customerMessage.substring(0, 200),
+        status: "assigned",
+        assignedTo: availableAgent._id,
+      });
+
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "customer",
+        message: customerMessage,
+      });
+
+      notificationMessage = `I've connected you with ${availableAgent.name} for further assistance.`;
+
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "ai",
+        message: notificationMessage,
+      });
+
+      return {
+        success: true,
+        isTicketCreated: true,
+        ticketId: ticket._id,
+        assignedAgentId: availableAgent._id,
+        response: notificationMessage,
+      };
+    } else {
+      ticket = await ticketDAO.createTicket({
+        tenantId,
+        customerEmail,
+        subject: customerMessage.substring(0, 200),
+        status: "open",
+      });
+
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "customer",
+        message: customerMessage,
+      });
+
+      return {
+        success: true,
+        isTicketCreated: true,
+        ticketId: ticket._id,
+        response: "Your request has been sent to support team.",
+      };
+    }
+  }
 
     // Step 1: Extract keywords and search Pinecone
     const keywords = await mistralChat.invoke([
@@ -188,7 +194,10 @@ export const processCustomerMessage = async (
     );
 
     // Step 2: If relevant data found, generate AI response
-    if (relevantResults.length > 0) {
+    if (
+      relevantResults.length > 0 &&
+      relevantResults[0].score > 0.65
+    ){
       const contextData = relevantResults
         .map((match) => match.metadata?.text || "")
         .join("\n\n---\n\n");
@@ -234,6 +243,8 @@ Provide a helpful, accurate answer:`;
         };
       }
     }
+
+   
 
     // Step 2.5: Try Tenant APIs before falling back to agent
     const apiResult = await tryTenantAPIs({ tenantId, customerMessage });
@@ -320,6 +331,8 @@ Provide a helpful, accurate answer:`;
         message: "Ticket created and left in queue",
       };
     }
+
+
   } catch (error) {
     console.error("Error in processCustomerMessage:", error);
     throw new AppError("Failed to process message with AI", 500);
