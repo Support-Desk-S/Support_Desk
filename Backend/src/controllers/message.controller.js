@@ -266,16 +266,7 @@ export const getWidgetConfig = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: {
-        name: widget.name,
-        title: widget.title,
-        subtitle: widget.subtitle,
-        welcomeMessage: widget.welcomeMessage,
-        primaryColor: widget.primaryColor,
-        position: widget.position,
-        width: widget.width,
-        height: widget.height,
-      },
+      data: widget,
     });
   } catch (err) {
     console.error("Error in getWidgetConfig:", err);
