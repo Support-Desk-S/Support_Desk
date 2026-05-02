@@ -65,7 +65,11 @@ export const getChatWidgetById = async (widgetId, tenantId) => {
 /**
  * Get all Chat Widgets for tenant
  */
-export const getChatWidgetsByTenant = async (tenantId, page = 1, limit = 10) => {
+export const getChatWidgetsByTenant = async (
+  tenantId,
+  page = 1,
+  limit = 10,
+) => {
   const skip = (page - 1) * limit;
 
   const widgets = await ChatWidget.find({ tenantId })
@@ -108,7 +112,7 @@ export const updateChatWidget = async (widgetId, tenantId, data) => {
       allowedDomains: data.allowedDomains,
       isActive: data.isActive,
     },
-    { new: true }
+    { returnDocument: "after" },
   );
 
   return widget;
@@ -135,8 +139,10 @@ export const deleteChatWidget = async (widgetId, tenantId) => {
  * Get Widget Configuration (for public use - no sensitive data)
  */
 export const getWidgetConfig = async (apiKey) => {
-  const keyRecord = await ApiKey.findOne({ key: apiKey, isActive: true })
-    .populate("chatWidgetId");
+  const keyRecord = await ApiKey.findOne({
+    key: apiKey,
+    isActive: true,
+  }).populate("chatWidgetId");
 
   if (!keyRecord || !keyRecord.chatWidgetId?.isActive) {
     return null;
@@ -179,7 +185,7 @@ export const regenerateApiKey = async (widgetId, tenantId) => {
   // Deactivate old key
   await ApiKey.findOneAndUpdate(
     { chatWidgetId: widgetId, isActive: true },
-    { isActive: false }
+    { isActive: false },
   );
 
   // Generate new key
