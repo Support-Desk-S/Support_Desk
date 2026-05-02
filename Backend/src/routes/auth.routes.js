@@ -5,7 +5,8 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 const router = Router();
 
 /**
- * @route POST /api/auth/tenant/register
+ * @route /api/widgets
+/api/auth
  * @desc Register a new tenant along with an admin user
  * @access Public
  * @body { name, slug, supportEmail, adminName, adminEmail, password }
