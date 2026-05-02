@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useCallback } from 'react';
+import { useCallback} from 'react';
 import {
   getWidgetsApi, createWidgetApi, updateWidgetApi,
   deleteWidgetApi, getApiKeysApi, createApiKeyApi,
@@ -10,7 +10,6 @@ import {
   updateWidgetInList, removeWidget,
 } from '../state/widgetSlice';
 import toast from 'react-hot-toast';
-
 export const useWidgets = () => {
   const dispatch = useDispatch();
   const { widgets, loading } = useSelector((state) => state.widgets);
@@ -29,7 +28,6 @@ export const useWidgets = () => {
       dispatch(setWidgetsLoading(false));
     }
   }, [dispatch]);
-
   const createWidget = async (data) => {
     const res = await createWidgetApi(data);
     dispatch(addWidget(res.data.data));
