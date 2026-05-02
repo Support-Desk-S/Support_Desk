@@ -1,4 +1,4 @@
-const tabs = ["General", "Security"];
+const tabs = ["General", "Security", "Integrations"];
 
 const SettingsTabs = ({ activeTab, setActiveTab }) => {
   return (

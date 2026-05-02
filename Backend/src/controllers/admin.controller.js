@@ -145,3 +145,37 @@ export const addTenantContext = async (req, res) => {
         });
     }
 }
+
+export const updateIntegrations = async (req, res) => {
+    try {
+        const { tenantId } = req.user;
+        const { integrations } = req.body;
+
+        if (!Array.isArray(integrations)) {
+            return res.status(400).json({
+                success: false,
+                message: "integrations must be an array"
+            });
+        }
+
+        const tenant = await adminService.updateIntegrations(tenantId, integrations);
+
+        return res.status(200).json({
+            success: true,
+            message: "Integrations updated successfully",
+            data: tenant,
+        });
+    } catch (err) {
+        if (err instanceof AppError) {
+            return res.status(err.statusCode).json({
+                success: false,
+                message: err.message,
+            });
+        }
+        console.error("Error in updateIntegrations:", err);
+        return res.status(500).json({
+            success: false,
+            message: "server error",
+        });
+    }
+}

@@ -54,4 +54,11 @@ router.get("/stats", tenantMiddleware, adminController.getStats);
  * @desc add tenant context for ai assistant
  */
 router.post("/tenant/context", isAdmin, tenantMiddleware, upload.single("file"), adminController.addTenantContext);
+
+/**
+ * @route PUT /api/admin/integrations
+ * @desc update tenant integrations
+ */
+router.put("/integrations", isAdmin, tenantMiddleware, adminController.updateIntegrations);
+
 export default router;

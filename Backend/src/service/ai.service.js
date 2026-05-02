@@ -5,6 +5,7 @@ import { getEmbeddings } from "../utils/getEmbeddings.js";
 import * as messageDAO from "../dao/message.dao.js";
 import * as ticketDAO from "../dao/ticket.dao.js";
 import AppError from "../utils/appError.js";
+import { tryTenantAPIs } from "./toolExecutor.service.js";
 
 const mistralChat = new ChatMistralAI({
   apiKey: config.MISTRAL_KEY,
@@ -32,21 +33,7 @@ export const processCustomerMessage = async (
   tenantId
 ) => {
   try {
-    // Step 1: ALWAYS create a ticket first for a new conversation thread to preserve history
-    const ticket = await ticketDAO.createTicket({
-      tenantId,
-      customerEmail,
-      subject: customerMessage.substring(0, 200),
-    });
-
-    // Save customer's initial message to the ticket thread
-    await messageDAO.createMessage({
-      ticketId: ticket._id,
-      sender: "customer",
-      message: customerMessage,
-    });
-
-    // Step 2: Extract keywords and search Pinecone
+    // Step 1: Extract keywords and search Pinecone
     const keywords = await mistralChat.invoke([
       {
         role: "user",
@@ -72,7 +59,7 @@ export const processCustomerMessage = async (
       (match) => match.score >= SIMILARITY_THRESHOLD
     );
 
-    // Step 3: If relevant data found, generate AI response
+    // Step 2: If relevant data found, generate AI response
     if (relevantResults.length > 0) {
       const contextData = relevantResults
         .map((match) => match.metadata?.text || "")
@@ -85,7 +72,7 @@ RULES:
 - Be concise, clear, and professional
 - If the knowledge base contains a direct answer, provide it confidently
 - Format your response in a readable way
-- Do NOT make up information not in the knowledge base
+- If the knowledge base does NOT contain the answer, reply EXACTLY with "I DO NOT KNOW". Do not add any other text.
 
 KNOWLEDGE BASE:
 ${contextData}
@@ -102,35 +89,56 @@ Provide a helpful, accurate answer:`;
         },
       ]);
 
-      const responseText = aiResponse.content || "I apologize, but I couldn't generate a response.";
+      const responseText = aiResponse.content || "I DO NOT KNOW";
 
-      // Save AI response to the ticket thread
-      await messageDAO.createMessage({
-        ticketId: ticket._id,
-        sender: "ai",
-        message: responseText,
-      });
-
-      return {
-        success: true,
-        isTicketCreated: true,
-        ticketId: ticket._id,
-        response: responseText,
-        message: "Query resolved from knowledge base",
-        confidence: relevantResults[0].score,
-      };
+      if (!responseText.includes("I DO NOT KNOW")) {
+        // No ticket created, just return the response
+        return {
+          success: true,
+          isTicketCreated: false,
+          ticketId: null,
+          response: responseText,
+          message: "Query resolved from knowledge base",
+          confidence: relevantResults[0].score,
+        };
+      }
     }
 
-    // Step 4: No relevant data found - assign to agent
+    // Step 2.5: Try Tenant APIs before falling back to agent
+    const apiResult = await tryTenantAPIs({ tenantId, customerMessage });
+    if (apiResult && apiResult.success) {
+        return {
+            success: true,
+            isTicketCreated: false,
+            ticketId: null,
+            response: apiResult.response,
+            message: "Query resolved from tenant APIs",
+        };
+    }
+
+    // Step 3: No relevant data found - check for available agent
     const availableAgent = await messageDAO.getAvailableAgent(tenantId);
+    let ticket;
+    let notificationMessage;
 
     if (availableAgent) {
-      await messageDAO.updateTicket(ticket._id, {
-        assignedTo: availableAgent._id,
+      // Create ticket and assign directly
+      ticket = await ticketDAO.createTicket({
+        tenantId,
+        customerEmail,
+        subject: customerMessage.substring(0, 200),
         status: "assigned",
+        assignedTo: availableAgent._id,
       });
 
-      const notificationMessage = `I couldn't find an exact answer in our knowledge base, so I've transferred your chat to ${availableAgent.name}. They've been notified and will respond here shortly!\n\nFeel free to add any extra details that might help them.`;
+      // Save customer's initial message to the ticket thread
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "customer",
+        message: customerMessage,
+      });
+
+      notificationMessage = `I couldn't find an exact answer in our knowledge base, so I've transferred your chat to ${availableAgent.name}. They've been notified and will respond here shortly!\n\nFeel free to add any extra details that might help them.`;
 
       await messageDAO.createMessage({
         ticketId: ticket._id,
@@ -148,7 +156,22 @@ Provide a helpful, accurate answer:`;
         message: "Ticket created and assigned to nearest available agent",
       };
     } else {
-      const notificationMessage = `I'm unable to answer that from our knowledge base. I've successfully escalated your request to our human support team! \n\nThey will review this conversation and get back to you as soon as they are available. Ticket reference: #${ticket._id.toString().slice(-8).toUpperCase()}`;
+      // Create ticket with status open
+      ticket = await ticketDAO.createTicket({
+        tenantId,
+        customerEmail,
+        subject: customerMessage.substring(0, 200),
+        status: "open",
+      });
+
+      // Save customer's initial message to the ticket thread
+      await messageDAO.createMessage({
+        ticketId: ticket._id,
+        sender: "customer",
+        message: customerMessage,
+      });
+
+      notificationMessage = `I'm unable to answer that from our knowledge base. I've successfully escalated your request to our human support team! \n\nThey will review this conversation and get back to you as soon as they are available. Ticket reference: #${ticket._id.toString().slice(-8).toUpperCase()}`;
 
       await messageDAO.createMessage({
         ticketId: ticket._id,

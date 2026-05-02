@@ -14,7 +14,7 @@ const DashboardLayout = ({ children, noPad = false }) => {
       <main
         className="flex-1 overflow-hidden flex flex-col pt-[var(--topbar-height)] md:ml-[var(--sidebar-width)] transition-all duration-300"
       >
-        <div className={`flex-1 overflow-hidden ${noPad ? '' : 'p-6'} animate-fade-in`}>
+        <div className={`flex-1 overflow-y-auto ${noPad ? '' : 'p-6'} animate-fade-in`}>
           {children}
         </div>
       </main>
