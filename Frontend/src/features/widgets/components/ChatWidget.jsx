@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, AlertCircle, RefreshCw, Loader2, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import {
   getWidgetConfigApi,
   sendInitialMessageApi,
@@ -17,19 +18,19 @@ const ChatWidget = ({ apiKey }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  
+
   // Ticket State
   const [customerEmail, setCustomerEmail] = useState(() => localStorage.getItem(`sd_widget_email_${apiKey}`) || '');
   const [emailPrompted, setEmailPrompted] = useState(false);
   const [ticketId, setTicketId] = useState(() => localStorage.getItem(`sd_widget_ticket_${apiKey}`) || null);
-  
+
   // Widget Visibility State
   const [isOpen, setIsOpen] = useState(false);
 
   // Tabs State
   const [activeTab, setActiveTab] = useState('current');
   const [previousTickets, setPreviousTickets] = useState([]);
-  
+
   const bottomRef = useRef(null);
   const pollRef = useRef(null);
 
@@ -40,7 +41,7 @@ const ChatWidget = ({ apiKey }) => {
         const res = await getWidgetConfigApi(apiKey);
         const cfg = res.data.data;
         setConfig(cfg);
-        
+
         // Notify parent iframe container of primary color
         window.parent.postMessage(
           JSON.stringify({ type: 'SUPPORT_DESK_CONFIG', color: cfg.primaryColor, position: cfg.position }),
@@ -72,7 +73,7 @@ const ChatWidget = ({ apiKey }) => {
       getCustomerTicketsApi(apiKey, customerEmail).then((res) => {
         const tickets = res.data.data;
         setPreviousTickets(tickets);
-        
+
         // Auto-clear resolved ticket if they just opened the widget
         // Wait, only do this if they haven't actively selected a resolved ticket to view.
         // Actually, let's just let the UI handle it (Show "Start New Chat" button if resolved)
@@ -107,7 +108,7 @@ const ChatWidget = ({ apiKey }) => {
         const msgs = res.data.data.messages || [];
         setMessages((prev) => {
           const prevWithoutWelcome = prev.filter(m => m._id !== 'welcome');
-          
+
           if (msgs.length !== prevWithoutWelcome.length) {
             return [{ _id: 'welcome', sender: 'ai', message: config.welcomeMessage, createdAt: new Date().toISOString() }, ...msgs];
           }
@@ -116,7 +117,7 @@ const ChatWidget = ({ apiKey }) => {
           const lastMsg = msgs[msgs.length - 1];
           const lastPrevMsg = prevWithoutWelcome[prevWithoutWelcome.length - 1];
           if (lastMsg && lastPrevMsg && (lastMsg.sender !== lastPrevMsg.sender || lastMsg.message !== lastPrevMsg.message || lastMsg._id !== lastPrevMsg._id)) {
-             return [{ _id: 'welcome', sender: 'ai', message: config.welcomeMessage, createdAt: new Date().toISOString() }, ...msgs];
+            return [{ _id: 'welcome', sender: 'ai', message: config.welcomeMessage, createdAt: new Date().toISOString() }, ...msgs];
           }
 
           return prev;
@@ -141,7 +142,7 @@ const ChatWidget = ({ apiKey }) => {
 
     const text = input.trim();
     setInput('');
-    
+
     // Optimistic UI
     const tempId = Date.now().toString();
     setMessages(prev => [...prev, { _id: tempId, sender: 'customer', message: text, createdAt: new Date().toISOString() }]);
@@ -166,17 +167,17 @@ const ChatWidget = ({ apiKey }) => {
       setCustomerEmail(text);
       localStorage.setItem(`sd_widget_email_${apiKey}`, text);
       setEmailPrompted(false);
-      
+
       const pendingQuery = sessionStorage.getItem('pendingQuery') || text;
       sessionStorage.removeItem('pendingQuery');
 
       setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'Thanks! Let me check on that for you...', createdAt: new Date().toISOString() }]);
-      
+
       try {
         setSending(true);
         const res = await sendInitialMessageApi(apiKey, { message: pendingQuery, customerEmail: text });
         const { isTicketCreated, ticketId: newTicketId, response } = res.data.data;
-        
+
         setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: response, createdAt: new Date().toISOString() }]);
 
         if (isTicketCreated && newTicketId) {
@@ -198,7 +199,7 @@ const ChatWidget = ({ apiKey }) => {
         setSending(true);
         const res = await sendInitialMessageApi(apiKey, { message: text, customerEmail });
         const { isTicketCreated, ticketId: newTicketId, response } = res.data.data;
-        
+
         setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: response, createdAt: new Date().toISOString() }]);
 
         if (isTicketCreated && newTicketId) {
@@ -253,7 +254,7 @@ const ChatWidget = ({ apiKey }) => {
   return (
     <div className="flex flex-col h-full bg-white rounded-xl overflow-hidden font-sans border border-gray-200">
       {/* Header */}
-      <div 
+      <div
         className="px-5 py-4 text-white shrink-0 shadow-sm"
         style={{ backgroundColor: config.primaryColor }}
       >
@@ -263,18 +264,18 @@ const ChatWidget = ({ apiKey }) => {
             <p className="text-xs opacity-90 mt-0.5">{config.subtitle || 'We typically reply in a few minutes'}</p>
           </div>
         </div>
-        
+
         {/* Tabs */}
         {customerEmail && (
           <div className="flex gap-4 mt-3 text-sm font-medium border-b border-white/20">
-            <button 
-              onClick={() => setActiveTab('current')} 
+            <button
+              onClick={() => setActiveTab('current')}
               className={`pb-1 border-b-2 transition-colors ${activeTab === 'current' ? 'border-white text-white' : 'border-transparent text-white/70 hover:text-white'}`}
             >
               Current Chat
             </button>
-            <button 
-              onClick={() => setActiveTab('previous')} 
+            <button
+              onClick={() => setActiveTab('previous')}
               className={`pb-1 border-b-2 transition-colors ${activeTab === 'previous' ? 'border-white text-white' : 'border-transparent text-white/70 hover:text-white'}`}
             >
               Previous Chats
@@ -288,32 +289,52 @@ const ChatWidget = ({ apiKey }) => {
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 bg-[#f9fafb] space-y-4">
             {messages.map((msg, idx) => {
-          const isCustomer = msg.sender === 'customer';
-          return (
-            <div key={msg._id || idx} className={`flex ${isCustomer ? 'justify-end' : 'justify-start'} gap-2`}>
-              {!isCustomer && (
-                <div 
-                  className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-1 shadow-sm"
-                  style={{ backgroundColor: msg.sender === 'ai' ? '#f3f4f6' : config.primaryColor, color: msg.sender === 'ai' ? config.primaryColor : '#fff' }}
-                >
-                  {msg.sender === 'ai' ? <Sparkles size={14} /> : <Bot size={14} />}
+              const isCustomer = msg.sender === 'customer';
+              return (
+                <div key={msg._id || idx} className={`flex ${isCustomer ? 'justify-end' : 'justify-start'} gap-2`}>
+                  {!isCustomer && (
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-1 shadow-sm"
+                      style={{ backgroundColor: msg.sender === 'ai' ? '#f3f4f6' : config.primaryColor, color: msg.sender === 'ai' ? config.primaryColor : '#fff' }}
+                    >
+                      {msg.sender === 'ai' ? <Sparkles size={14} /> : <Bot size={14} />}
+                    </div>
+                  )}
+
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[13.5px] leading-relaxed shadow-sm ${isCustomer
+                        ? 'rounded-tr-sm text-white'
+                        : 'rounded-tl-sm bg-white text-gray-800 border border-gray-100'
+                      }`}
+                    style={isCustomer ? { backgroundColor: config.primaryColor } : {}}
+                  >
+                    {isCustomer ? (
+                      msg.message.split('\n').map((line, i) => <p key={i} className="min-h-[14px]">{line}</p>)
+                    ) : (
+                      <ReactMarkdown
+                        components={{
+                          p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                          a: ({ node, ...props }) => <a className="text-blue-600 hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />,
+                          ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                          ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
+                          li: ({ node, ...props }) => <li {...props} />,
+                          strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900" {...props} />,
+                          code: ({ node, inline, ...props }) =>
+                            inline ? (
+                              <code className="bg-gray-100 px-1.5 py-0.5 rounded-md text-xs font-mono text-gray-800" {...props} />
+                            ) : (
+                              <pre className="bg-gray-100 p-2.5 rounded-md text-xs overflow-x-auto mb-2 text-gray-800"><code className="font-mono" {...props} /></pre>
+                            )
+                        }}
+                      >
+                        {msg.message}
+                      </ReactMarkdown>
+                    )}
+                  </div>
                 </div>
-              )}
-              
-              <div 
-                className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[13.5px] leading-relaxed shadow-sm ${
-                  isCustomer 
-                    ? 'rounded-tr-sm text-white' 
-                    : 'rounded-tl-sm bg-white text-gray-800 border border-gray-100'
-                }`}
-                style={isCustomer ? { backgroundColor: config.primaryColor } : {}}
-              >
-                {msg.message.split('\n').map((line, i) => <p key={i} className="min-h-[14px]">{line}</p>)}
-              </div>
-            </div>
-          );
-        })}
-          <div ref={bottomRef} />
+              );
+            })}
+            <div ref={bottomRef} />
           </div>
 
           {/* Input Area */}
@@ -355,7 +376,7 @@ const ChatWidget = ({ apiKey }) => {
               </form>
             )}
             <div className="text-center mt-2">
-               <a href="#" className="text-[10px] text-gray-400 hover:text-gray-500 transition-colors">Powered by SupportDesk</a>
+              <a href="#" className="text-[10px] text-gray-400 hover:text-gray-500 transition-colors">Powered by SupportDesk</a>
             </div>
           </div>
         </>
@@ -365,14 +386,14 @@ const ChatWidget = ({ apiKey }) => {
             <div className="text-center text-sm text-gray-500 mt-10">No previous chats found.</div>
           ) : (
             previousTickets.map(ticket => (
-              <div 
-                key={ticket._id} 
+              <div
+                key={ticket._id}
                 className={`bg-white p-3 rounded-lg border cursor-pointer hover:border-gray-300 transition-colors ${ticketId === ticket._id ? 'border-blue-400' : 'border-gray-200'}`}
                 onClick={() => {
                   setTicketId(ticket._id);
                   localStorage.setItem(`sd_widget_ticket_${apiKey}`, ticket._id);
                   setActiveTab('current');
-                  
+
                   // Optimistically clear messages so they refetch for the new ticket
                   // Fetch will happen because ticketId changed and polling useEffect runs
                   setMessages([{ _id: 'welcome', sender: 'ai', message: config?.welcomeMessage || 'Loading...', createdAt: new Date().toISOString() }]);
