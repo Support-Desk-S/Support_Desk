@@ -2,8 +2,8 @@ import axios from "axios";
 import { store } from "../app/store";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000",
-  withCredentials: true, // 🔥 required for cookie JWT
+  baseURL: import.meta.env.VITE_BASE_URL || "http://localhost:3000",
+  withCredentials: true, // required for cookie JWT
 });
 
 /**
