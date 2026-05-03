@@ -44,7 +44,7 @@ const ChatWidget = ({ apiKey }) => {
 
         // Notify parent iframe container of primary color
         window.parent.postMessage(
-          JSON.stringify({ type: 'SUPPORT_DESK_CONFIG', color: cfg.primaryColor, position: cfg.position }),
+          JSON.stringify({ type: 'SUPPORT_DESK_CONFIG', color: cfg.primaryColor, position: cfg.position, width: cfg.width, height: cfg.height }),
           '*'
         );
 
@@ -252,7 +252,7 @@ const ChatWidget = ({ apiKey }) => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl overflow-hidden font-sans border border-gray-200">
+    <div className="flex flex-col h-full overflow-hidden font-sans border border-gray-200" style={{ borderRadius: config.borderRadius ? `${config.borderRadius}px` : '12px' }}>
       {/* Header */}
       <div
         className="px-5 py-4 text-white shrink-0 shadow-sm"
@@ -287,12 +287,12 @@ const ChatWidget = ({ apiKey }) => {
       {activeTab === 'current' ? (
         <>
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-[#f9fafb] space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ backgroundColor: config.backgroundColor || '#f9fafb' }}>
             {messages.map((msg, idx) => {
               const isCustomer = msg.sender === 'customer';
               return (
                 <div key={msg._id || idx} className={`flex ${isCustomer ? 'justify-end' : 'justify-start'} gap-2`}>
-                  {!isCustomer && (
+                  {!isCustomer && config.showAvatar !== false && (
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-1 shadow-sm"
                       style={{ backgroundColor: msg.sender === 'ai' ? '#f3f4f6' : config.primaryColor, color: msg.sender === 'ai' ? config.primaryColor : '#fff' }}
@@ -301,13 +301,14 @@ const ChatWidget = ({ apiKey }) => {
                     </div>
                   )}
 
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[13.5px] leading-relaxed shadow-sm ${isCustomer
-                        ? 'rounded-tr-sm text-white'
-                        : 'rounded-tl-sm bg-white text-gray-800 border border-gray-100'
-                      }`}
-                    style={isCustomer ? { backgroundColor: config.primaryColor } : {}}
-                  >
+                  <div>
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[13.5px] leading-relaxed shadow-sm ${isCustomer
+                          ? 'rounded-tr-sm text-white ml-auto'
+                          : 'rounded-tl-sm border border-gray-100'
+                        }`}
+                      style={isCustomer ? { backgroundColor: config.primaryColor } : { backgroundColor: '#ffffff', color: config.textColor || '#212529', borderColor: config.secondaryColor || '#e5e7eb' }}
+                    >
                     {isCustomer ? (
                       msg.message.split('\n').map((line, i) => <p key={i} className="min-h-[14px]">{line}</p>)
                     ) : (
@@ -331,6 +332,12 @@ const ChatWidget = ({ apiKey }) => {
                       </ReactMarkdown>
                     )}
                   </div>
+                  {config.showTimestamps !== false && msg.createdAt && (
+                    <div className={`text-[10px] mt-1 text-gray-400 ${isCustomer ? 'text-right' : 'text-left'}`}>
+                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  )}
+                  </div>
                 </div>
               );
             })}
@@ -338,7 +345,7 @@ const ChatWidget = ({ apiKey }) => {
           </div>
 
           {/* Input Area */}
-          <div className="p-3 bg-white border-t border-gray-100 shrink-0">
+          <div className="p-3 border-t shrink-0" style={{ backgroundColor: config.backgroundColor || '#ffffff', borderColor: config.secondaryColor || '#f3f4f6' }}>
             {ticketId && previousTickets.find(t => t._id === ticketId)?.status === 'resolved' ? (
               <div className="text-center pb-2">
                 <p className="text-xs text-gray-500 mb-2">This chat has been resolved.</p>
@@ -381,14 +388,15 @@ const ChatWidget = ({ apiKey }) => {
           </div>
         </>
       ) : (
-        <div className="flex-1 overflow-y-auto p-4 bg-[#f9fafb] space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ backgroundColor: config.backgroundColor || '#f9fafb' }}>
           {previousTickets.length === 0 ? (
             <div className="text-center text-sm text-gray-500 mt-10">No previous chats found.</div>
           ) : (
             previousTickets.map(ticket => (
               <div
                 key={ticket._id}
-                className={`bg-white p-3 rounded-lg border cursor-pointer hover:border-gray-300 transition-colors ${ticketId === ticket._id ? 'border-blue-400' : 'border-gray-200'}`}
+                className={`p-3 rounded-lg border cursor-pointer hover:border-gray-300 transition-colors`}
+                style={{ backgroundColor: '#ffffff', borderColor: ticketId === ticket._id ? config.primaryColor : (config.secondaryColor || '#e5e7eb') }}
                 onClick={() => {
                   setTicketId(ticket._id);
                   localStorage.setItem(`sd_widget_ticket_${apiKey}`, ticket._id);

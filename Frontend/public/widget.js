@@ -114,6 +114,8 @@
       const data = JSON.parse(event.data);
       if (data.type === 'SUPPORT_DESK_CONFIG') {
         if (data.color) button.style.backgroundColor = data.color;
+        if (data.width) iframe.style.width = `${data.width}px`;
+        if (data.height) iframe.style.height = `${data.height}px`;
         
         // Handle positioning if sent by config
         if (data.position) {
