@@ -32,13 +32,21 @@ export const useTicketDetail = (ticketId) => {
     messagesLoading,
     sending,
     aiLoading,
+    fetchedTicketDetails,
+    fetchedTicketMessages,
   } = useSelector((state) => state.tickets);
+  const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 
   const pollRef = useRef(null);
   const lastCountRef = useRef(0);
 
-  const fetchTicket = useCallback(async () => {
+  const fetchTicket = useCallback(async (force = false) => {
     if (!ticketId) return;
+    const cached = fetchedTicketDetails[ticketId];
+    if (!force && cached && Date.now() - cached.timestamp < CACHE_TIME) {
+      dispatch(setActiveTicket(cached.data));
+      return;
+    }
     try {
       dispatch(setTicketDetailLoading(true));
       const res = await getTicketByIdApi(ticketId);
@@ -50,8 +58,17 @@ export const useTicketDetail = (ticketId) => {
     }
   }, [dispatch, ticketId]);
 
-  const fetchMessages = useCallback(async (silent = false) => {
+  const fetchMessages = useCallback(async (silent = false, force = false) => {
     if (!ticketId) return;
+    const cached = fetchedTicketMessages[ticketId];
+    if (!force && !silent && cached && Date.now() - cached.timestamp < CACHE_TIME) {
+      const msgs = cached.data;
+      if (msgs.length !== lastCountRef.current) {
+        lastCountRef.current = msgs.length;
+        dispatch(setActiveTicketMessages(msgs));
+      }
+      return;
+    }
     try {
       if (!silent) dispatch(setMessagesLoading(true));
       const res = await getAgentMessagesApi(ticketId);

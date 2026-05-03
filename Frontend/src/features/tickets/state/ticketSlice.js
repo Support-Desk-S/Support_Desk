@@ -12,6 +12,9 @@ const initialState = {
   messagesLoading: false,
   sending: false,
   aiLoading: false,
+  lastFetchedTickets: null,
+  fetchedTicketDetails: {},
+  fetchedTicketMessages: {},
 };
 
 const ticketSlice = createSlice({
@@ -21,6 +24,7 @@ const ticketSlice = createSlice({
     setTickets: (state, action) => {
       state.tickets = Array.isArray(action.payload.tickets) ? action.payload.tickets : [];
       state.total = action.payload.total ?? 0;
+      state.lastFetchedTickets = Date.now();
     },
     appendTickets: (state, action) => {
       const newTickets = Array.isArray(action.payload.tickets) ? action.payload.tickets : [];
@@ -39,12 +43,30 @@ const ticketSlice = createSlice({
     // Ticket detail
     setActiveTicket: (state, action) => {
       state.activeTicket = action.payload;
+      if (action.payload && action.payload._id) {
+        state.fetchedTicketDetails[action.payload._id] = {
+          data: action.payload,
+          timestamp: Date.now(),
+        };
+      }
     },
     setActiveTicketMessages: (state, action) => {
       state.activeTicketMessages = action.payload;
+      if (state.activeTicket && state.activeTicket._id) {
+        state.fetchedTicketMessages[state.activeTicket._id] = {
+          data: action.payload,
+          timestamp: Date.now(),
+        };
+      }
     },
     appendMessage: (state, action) => {
       state.activeTicketMessages.push(action.payload);
+      if (state.activeTicket && state.activeTicket._id) {
+        state.fetchedTicketMessages[state.activeTicket._id] = {
+          data: state.activeTicketMessages,
+          timestamp: Date.now(),
+        };
+      }
     },
     setTicketDetailLoading: (state, action) => {
       state.ticketDetailLoading = action.payload;

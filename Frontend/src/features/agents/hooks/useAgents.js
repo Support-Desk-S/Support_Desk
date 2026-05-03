@@ -6,9 +6,11 @@ import toast from 'react-hot-toast';
 
 export const useAgents = () => {
   const dispatch = useDispatch();
-  const { users, loading } = useSelector((state) => state.agents);
+  const { users, loading, lastFetchedUsers } = useSelector((state) => state.agents);
+  const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (force = false) => {
+    if (!force && lastFetchedUsers && Date.now() - lastFetchedUsers < CACHE_TIME) return;
     try {
       dispatch(setAgentsLoading(true));
       const res = await getUsersApi();
