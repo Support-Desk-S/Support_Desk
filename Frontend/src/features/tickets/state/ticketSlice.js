@@ -22,6 +22,14 @@ const ticketSlice = createSlice({
       state.tickets = Array.isArray(action.payload.tickets) ? action.payload.tickets : [];
       state.total = action.payload.total ?? 0;
     },
+    appendTickets: (state, action) => {
+      const newTickets = Array.isArray(action.payload.tickets) ? action.payload.tickets : [];
+      // avoid duplicates
+      const existingIds = new Set(state.tickets.map(t => t._id));
+      const filteredNew = newTickets.filter(t => !existingIds.has(t._id));
+      state.tickets = [...state.tickets, ...filteredNew];
+      state.total = action.payload.total ?? state.total;
+    },
     setTicketsLoading: (state, action) => {
       state.loading = action.payload;
     },
@@ -69,6 +77,7 @@ export const {
   setTickets,
   setTicketsLoading,
   setActiveFilter,
+  appendTickets,
   setActiveTicket,
   setActiveTicketMessages,
   appendMessage,

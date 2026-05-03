@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import DashboardLayout from '../../../shared/components/layout/DashboardLayout';
 import { useStats } from '../hooks/useStats';
@@ -38,11 +38,21 @@ const statusVariantMap = { open: 'open', assigned: 'assigned', resolved: 'resolv
 const DashboardPage = () => {
   const { user } = useSelector((state) => state.auth);
   const { stats, loading: statsLoading } = useStats();
-  const { tickets, loading: ticketsLoading, fetchTickets } = useTickets();
+  const { tickets, total, loading: ticketsLoading, fetchTickets, loadMoreTickets } = useTickets();
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    fetchTickets({ limit: 8 });
+    fetchTickets({ limit: 8, page: 1 });
   }, []);
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    await loadMoreTickets({ limit: 8, page: nextPage });
+    setLoadingMore(false);
+  };
 
   return (
     <DashboardLayout>
@@ -134,6 +144,17 @@ const DashboardPage = () => {
                 ))}
               </tbody>
             </table>
+            {tickets.length < total && (
+              <div className="p-4 border-t border-[#e5e7eb] flex justify-center bg-white">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="px-4 py-2 text-sm font-medium text-[#111111] bg-white border border-[#e5e7eb] rounded-[8px] hover:bg-[#f9fafb] disabled:opacity-50 transition-colors"
+                >
+                  {loadingMore ? 'Loading...' : 'Load More Tickets'}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
