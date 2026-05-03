@@ -582,7 +582,7 @@ const WidgetsPage = () => {
             <button
               onClick={() =>
                 copyKey(
-                  `<script src=${import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173"}/widget.js" data-api-key="${apiKeys[0]?.key || "YOUR_API_KEY"}" id="support-desk-widget"></script>`,
+                  `<script src="${import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173"}/widget.js" data-api-key="${apiKeys[0]?.key || "YOUR_API_KEY"}" id="support-desk-widget"></script>`,
                 )
               }
               className="cursor-pointer flex items-center gap-1.5 text-xs text-[#6b7280] hover:text-[#111111] transition-colors font-medium"
@@ -591,7 +591,11 @@ const WidgetsPage = () => {
             </button>
           </div>
           <code className="text-[11px] text-[#6b7280] break-all font-mono block bg-white p-2.5 rounded border border-[#e5e7eb]">
-            {`<script src=${import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173"}/widget.js" data-api-key="${apiKeys[0]?.key || "YOUR_API_KEY"}" id="support-desk-widget"></script>`}
+            {`<script 
+               src="${import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173"}/widget.js"
+               data-api-key="${apiKeys[0]?.key || "YOUR_API_KEY"}"
+               id="support-desk-widget">
+               </script>`}
           </code>
         </div>
       </Modal>
