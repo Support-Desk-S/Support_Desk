@@ -223,13 +223,6 @@ const WidgetFormFields = ({ form, setForm }) => (
       </label>
     </div>
 
-    {/* DOMAINS */}
-    <Input
-      label="Allowed Domains"
-      value={form.allowedDomains}
-      onChange={(e) => setForm({ ...form, allowedDomains: e.target.value })}
-      placeholder="example.com, mysite.com"
-    />
 
     {/* ACTIVE */}
     {"isActive" in form && (

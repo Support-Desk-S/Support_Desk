@@ -68,10 +68,6 @@ export const createWidgetValidation = [
     .isLength({ max: 300 })
     .withMessage("Welcome message cannot exceed 300 characters"),
 
-  body("allowedDomains")
-    .optional()
-    .isArray()
-    .withMessage("Allowed domains must be an array"),
 
   validateRequest,
 ];
