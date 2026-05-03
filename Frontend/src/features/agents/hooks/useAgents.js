@@ -21,7 +21,7 @@ export const useAgents = () => {
     } finally {
       dispatch(setAgentsLoading(false));
     }
-  }, [dispatch,lastFetchedUsers
+  }, [dispatch,lastFetchedUsers]);
 
   const approveUser = async (userId, isApproved) => {
     try {
