@@ -5,12 +5,15 @@ import { store } from "./app/store";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter } from "react-router";
 import App from "./app/App";
+import { ConfirmProvider } from "./app/context/ConfirmContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>
     <BrowserRouter>
-      <App />
-      <Toaster />
+      <ConfirmProvider>
+        <App />
+        <Toaster />
+      </ConfirmProvider>
     </BrowserRouter>
   </Provider>,
 );

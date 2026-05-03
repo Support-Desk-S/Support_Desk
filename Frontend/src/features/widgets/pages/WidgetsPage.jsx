@@ -17,9 +17,13 @@ import {
   Pencil,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useConfirm } from "../../../app/context/ConfirmContext";
+
+
 
 // Simple widget preview component for the grid
 const WidgetPreview = ({ widget }) => {
+  
   const {
     primaryColor = "#007bff",
     backgroundColor = "#ffffff",
@@ -32,6 +36,7 @@ const WidgetPreview = ({ widget }) => {
 
   const isRight = position.includes("right");
   const isBottom = position.includes("bottom");
+  const [loadingId, setLoadingId] = useState(null);
 
   return (
     <div className="relative w-full h-40 bg-[#f8f9fa] rounded-[10px] border border-[#e5e7eb] overflow-hidden group">
@@ -237,6 +242,7 @@ const WidgetFormFields = ({ form, setForm }) => (
 );
 
 const WidgetsPage = () => {
+  const { confirm } = useConfirm();
   const {
     widgets,
     loading,
@@ -440,13 +446,22 @@ const WidgetsPage = () => {
                   <button
                     onClick={() => openEdit(widget)}
                     className="cursor-pointer p-1.5 rounded-lg text-[#9ca3af] hover:text-[#111111] hover:bg-[#f3f4f6] transition-colors"
-                    title="Edit widget"
+                    title="Edit this widget"
                   >
                     <Pencil size={14} />
                   </button>
 
                   <button
-                    onClick={() => deleteWidget(widget._id)}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Delete Widget",
+                        message: "Are you sure you want to delete this widget?",
+                      });
+                    
+                      if (!ok) return;
+                    
+                      await deleteWidget(widget._id);
+                    }}
                     className="cursor-pointer p-1.5 rounded-lg text-[#9ca3af] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-colors"
                     title="Delete widget"
                   >

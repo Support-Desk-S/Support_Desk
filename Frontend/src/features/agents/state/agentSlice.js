@@ -2,9 +2,12 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const agentSlice = createSlice({
   name: 'agents',
-  initialState: { users: [], loading: false },
+  initialState: { users: [], loading: false, lastFetchedUsers: null },
   reducers: {
-    setUsers: (state, action) => { state.users = action.payload; },
+    setUsers: (state, action) => { 
+      state.users = action.payload; 
+      state.lastFetchedUsers = Date.now();
+    },
     setAgentsLoading: (state, action) => { state.loading = action.payload; },
     updateUserInList: (state, action) => {
       const idx = state.users.findIndex((u) => u._id === action.payload._id);

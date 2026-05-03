@@ -60,6 +60,33 @@ export const approveUser = async (req, res) => {
   }
 };
 
+export const suspendUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { tenantId } = req.user;
+
+    const user = await adminService.suspendUser(userId, tenantId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Agent suspended successfully",
+      data: user,
+    });
+  } catch (err) {
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message,
+      });
+    }
+    console.error("Error in suspendUser:", err);
+    return res.status(500).json({
+      success: false,
+      message: "server error",
+    });
+  }
+};
+
 export const updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;

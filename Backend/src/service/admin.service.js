@@ -21,10 +21,10 @@ export const getUsers = async (tenantId) => {
 };
 
 /**
- * Approve or reject a user
+ * Approve or suspend a user (toggle isApproved)
  *
  * @param {string} userId - MongoDB ObjectId of the user
- * @param {boolean} isApproved - Approval status
+ * @param {boolean} isApproved - New approval status (true = approve, false = suspend)
  * @param {string} tenantId - MongoDB ObjectId of the tenant (for security check)
  * @returns {Promise<Object>} - Updated user object
  */
@@ -34,17 +34,30 @@ export const approveUser = async (userId, isApproved, tenantId) => {
   if (!user) throw new AppError("User not found", 404);
 
   if (user.role === "admin") {
-    throw new AppError("Cannot approve another admin", 403);
-  }
-
-  if (user.isApproved === true) {
-    throw new AppError("User already approved", 400);
+    throw new AppError("Cannot modify approval status of an admin", 403);
   }
 
   user.isApproved = isApproved;
+
+  // If suspending, also mark the agent as offline
+  if (!isApproved) {
+    user.isOnline = false;
+  }
+
   await user.save();
 
   return user;
+};
+
+/**
+ * Suspend a specific user (set isApproved = false, isOnline = false)
+ *
+ * @param {string} userId - MongoDB ObjectId of the user
+ * @param {string} tenantId - MongoDB ObjectId of the tenant
+ * @returns {Promise<Object>} - Updated user object
+ */
+export const suspendUser = async (userId, tenantId) => {
+  return await approveUser(userId, false, tenantId);
 };
 
 /**
@@ -112,101 +125,101 @@ export const getStats = async (tenantId) => {
 
 
 export const addAicontextService = async (tenantId, file) => {
-    try{
-        if (!file) {
-            throw new AppError("No file uploaded", 400);
-        }
-        const result = await uploadFile({
-            buffer: file.buffer,
-            fileName: file.originalname,
-            folder: "tenant-context",
-        })
-        console.log("File uploaded to ImageKit:", result.url,result); // Debug log
-        
-        // Save buffer to temporary file for PDFLoader
-        const tempDir = "./temp";
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir);
-        }
-        const tempFilePath = path.join(tempDir, `temp-${Date.now()}.pdf`);
-        fs.writeFileSync(tempFilePath, file.buffer);
-        
-        try {
-            const loader = new PDFLoader(tempFilePath);
-            const documents = await loader.load();
-            
-            // Extract and normalize text for better chunk quality
-            let text = documents.map(doc => doc.pageContent).join("\n");
-            
-            console.log(`[addAicontextService] Raw extracted text length: ${text.length} chars`);
-            
-            // Text normalization for better chunking:
-            // 1. Replace multiple whitespaces with single space
-            text = text.replace(/\s+/g, ' ');
-            // 2. Properly format FAQ structure with double newlines
-            text = text.replace(/(\?)\s+([A-Z])/g, '$1\n\n$2');
-            text = text.replace(/\n([A-Z].*?\?)/g, '\n\nQ: $1');
-            // 3. Add proper line breaks for readability
-            text = text.replace(/\.\s+/g, '.\n');
-            // 4. Clean up extra spaces
-            text = text.trim();
-            
-            console.log(`[addAicontextService] Normalized text length: ${text.length} chars`);
-            console.log("=".repeat(50));
-
-            const embeddings = await getEmbeddings(text);
-            console.log(`[addAicontextService] Number of chunks created: ${embeddings.length}`);
-            
-            // Verify chunks aren't empty
-            const validEmbeddings = embeddings.filter(e => e.chunk && e.chunk.trim().length > 0);
-            console.log(`[addAicontextService] Valid chunks after filtering: ${validEmbeddings.length}`);
-
-            if (validEmbeddings.length === 0) {
-              throw new AppError("No valid content chunks created from PDF", 400);
-            }
-
-            await index.upsert({
-              records : validEmbeddings.map((item, index) => ({
-                id: `${tenantId}-${file.originalname}-${index}`,
-                values: item.embedding,
-                metadata:{
-                  tenantId,
-                  text: item.chunk,
-                  source: file.originalname,
-                }
-              }))
-            });
-            
-            console.log(`[addAicontextService] Successfully upserted ${validEmbeddings.length} chunks to Pinecone`);
-            const tenant = await tenantDAO.addAIContext(tenantId, result.url);
-            return tenant;
-        } finally {
-            // Clean up temporary file
-            if (fs.existsSync(tempFilePath)) {
-                fs.unlinkSync(tempFilePath);
-            }
-        }
-    }catch(err){
-        throw err;
+  try {
+    if (!file) {
+      throw new AppError("No file uploaded", 400);
     }
+    const result = await uploadFile({
+      buffer: file.buffer,
+      fileName: file.originalname,
+      folder: "tenant-context",
+    })
+    console.log("File uploaded to ImageKit:", result.url, result); // Debug log
+
+    // Save buffer to temporary file for PDFLoader
+    const tempDir = "./temp";
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir);
+    }
+    const tempFilePath = path.join(tempDir, `temp-${Date.now()}.pdf`);
+    fs.writeFileSync(tempFilePath, file.buffer);
+
+    try {
+      const loader = new PDFLoader(tempFilePath);
+      const documents = await loader.load();
+
+      // Extract and normalize text for better chunk quality
+      let text = documents.map(doc => doc.pageContent).join("\n");
+
+      console.log(`[addAicontextService] Raw extracted text length: ${text.length} chars`);
+
+      // Text normalization for better chunking:
+      // 1. Replace multiple whitespaces with single space
+      text = text.replace(/\s+/g, ' ');
+      // 2. Properly format FAQ structure with double newlines
+      text = text.replace(/(\?)\s+([A-Z])/g, '$1\n\n$2');
+      text = text.replace(/\n([A-Z].*?\?)/g, '\n\nQ: $1');
+      // 3. Add proper line breaks for readability
+      text = text.replace(/\.\s+/g, '.\n');
+      // 4. Clean up extra spaces
+      text = text.trim();
+
+      console.log(`[addAicontextService] Normalized text length: ${text.length} chars`);
+      console.log("=".repeat(50));
+
+      const embeddings = await getEmbeddings(text);
+      console.log(`[addAicontextService] Number of chunks created: ${embeddings.length}`);
+
+      // Verify chunks aren't empty
+      const validEmbeddings = embeddings.filter(e => e.chunk && e.chunk.trim().length > 0);
+      console.log(`[addAicontextService] Valid chunks after filtering: ${validEmbeddings.length}`);
+
+      if (validEmbeddings.length === 0) {
+        throw new AppError("No valid content chunks created from PDF", 400);
+      }
+
+      await index.upsert({
+        records: validEmbeddings.map((item, index) => ({
+          id: `${tenantId}-${file.originalname}-${index}`,
+          values: item.embedding,
+          metadata: {
+            tenantId,
+            text: item.chunk,
+            source: file.originalname,
+          }
+        }))
+      });
+
+      console.log(`[addAicontextService] Successfully upserted ${validEmbeddings.length} chunks to Pinecone`);
+      const tenant = await tenantDAO.addAIContext(tenantId, result.url);
+      return tenant;
+    } finally {
+      // Clean up temporary file
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+    }
+  } catch (err) {
+    throw err;
+  }
 }
 
 export const updateIntegrations = async (tenantId, integrations) => {
-    // Encrypt API keys if necessary
-    const { encrypt } = await import('../utils/encryption.js');
-    const processedIntegrations = integrations.map(int => {
-        if (int.auth && int.auth.key && !int.auth.key.includes(':')) {
-             // Basic check if already encrypted (our format is iv:encrypted)
-            int.auth.key = encrypt(int.auth.key);
-        }
-        return int;
-    });
+  // Encrypt API keys if necessary
+  const { encrypt } = await import('../utils/encryption.js');
+  const processedIntegrations = integrations.map(int => {
+    if (int.auth && int.auth.key && !int.auth.key.includes(':')) {
+      // Basic check if already encrypted (our format is iv:encrypted)
+      int.auth.key = encrypt(int.auth.key);
+    }
+    return int;
+  });
 
-    const tenant = await tenantDAO.getTenantById(tenantId);
-    if (!tenant) throw new AppError("Tenant not found", 404);
+  const tenant = await tenantDAO.getTenantById(tenantId);
+  if (!tenant) throw new AppError("Tenant not found", 404);
 
-    tenant.integrations = processedIntegrations;
-    await tenant.save();
+  tenant.integrations = processedIntegrations;
+  await tenant.save();
 
-    return tenant;
+  return tenant;
 }
