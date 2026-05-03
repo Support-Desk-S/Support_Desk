@@ -1,8 +1,9 @@
 (function () {
   // Find the script tag that loaded this script to extract attributes
   const currentScript =
-    document.currentScript ||
+    document.querySelector('script[data-api-key]') ||
     document.querySelector('script[id="support-desk-widget"]') ||
+    document.currentScript ||
     document.querySelector('script[src*="widget.js"]');
 
   if (!currentScript) {
@@ -10,7 +11,7 @@
     return;
   }
 
-  const apiKey = currentScript.getAttribute('data-api-key');
+  const apiKey = currentScript.getAttribute('data-api-key')?.trim();
 
   if (!apiKey) {
     console.error('[SupportDesk] Missing data-api-key attribute on script tag.');
