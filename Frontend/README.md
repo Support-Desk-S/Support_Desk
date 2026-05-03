@@ -1,144 +1,240 @@
-# React + Vite
+# 🖥️ SupportDesk — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Live App:** [https://support-desk-one-lilac.vercel.app/](https://support-desk-one-lilac.vercel.app/)
 
-Currently, two official plugins are available:
-
-
-## React Compiler
-
-# Frontend - Support Desk
-
-Welcome to the Frontend for the Support Desk application. This repository contains the Vite + React single-page application that powers the web UI, admin dashboard, and embeddable chat widget used by the Support Desk system.
-
-## Overview
-
-This frontend provides:
-- A responsive admin dashboard for managing tenants, tickets, agents, and integrations.
-- Public-facing pages and authentication flows (login / register).
-- An embeddable chat widget served from `public/widget.js` for customer support interactions.
-- Client-side state management using Redux Toolkit and async services.
-
-The app is built with Vite, React, Tailwind CSS, and Axios for API requests.
-
-## Key Features
-
-- Tenant-aware UI and routes
-- Ticket listing and detail views
-- Agent management and onboarding flows
-- Settings and integration sections (profile, workspace, security)
-- Small, embeddable chat widget for customer websites
-
-## Tech Stack
-
-- Framework: React (JSX)
-- Bundler: Vite
-- State Management: Redux Toolkit
-- Styling: Tailwind CSS
-- HTTP: Axios
-- Linting: ESLint
-
-## Project Structure (important folders)
-
-- `src/` — Application source code
-	- `app/` — Root app components, routing, and store setup
-	- `features/` — Domain features (auth, dashboard, tickets, widgets, agents, etc.)
-	- `lib/axios.js` — Axios instance and helpers
-	- `shared/` — Reusable UI components and layout
-- `public/` — Static assets (including `widget.js`) that are served as-is
-
-## Prerequisites
-
-- Node.js v18+ (recommended) and npm
-- Internet access to install dependencies
-
-## Environment
-
-Create a `.env` at the project root (if needed). Typical variables used by the frontend may include:
-
-```
-VITE_API_BASE_URL=https://api.example.com
-VITE_WIDGET_MODE=production
-```
-
-Adjust these variables to point to your backend or staging environment.
-
-## Installation
-
-Run the following inside the `Frontend` directory:
-
-```bash
-npm install
-```
-
-## Development
-
-Start the Vite development server with:
-
-```bash
-npm run dev
-```
-
-This enables fast HMR and local development at `http://localhost:5173` (default). The app will make API calls to the URL configured by `VITE_API_BASE_URL`.
-
-## Linting
-
-Run ESLint with:
-
-```bash
-npm run lint
-```
-
-Fixable issues can be addressed by your editor or by running ESLint with an auto-fix option where appropriate.
-
-## Build & Preview
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-Preview the production build locally:
-
-```bash
-npm run preview
-```
-
-## Embeddable Widget
-
-The `public/widget.js` file contains the embeddable chat widget that can be included on external websites. The widget is a lightweight script that talks to the backend and renders the UI in-site.
-
-If you change widget code, rebuild the frontend and deploy the `dist` artifacts or copy the updated `widget.js` to your CDN or hosting location.
-
-## Contributing
-
-- Follow the existing code style and patterns in `src/`.
-- Open issues for bugs and feature requests.
-- Submit pull requests against the `main` branch with a clear description and testing notes.
-
-## Troubleshooting
-
-- If API calls fail, verify `VITE_API_BASE_URL` and backend availability.
-- For styling/layout issues, rebuild after clearing caches: delete `node_modules/.vite` and restart the dev server.
-
-## Useful Commands
-
-- `npm install` — Install dependencies
-- `npm run dev` — Start development server (Vite)
-- `npm run build` — Build for production
-- `npm run preview` — Preview a production build
-- `npm run lint` — Run ESLint
-
-## Where to go next
-
-- Backend integration lives in the sibling `Backend` folder — ensure the backend is running when developing features that call APIs.
-- See `src/features/*` for feature-specific implementation and `shared/components` for reusable UI.
+The SupportDesk frontend is a React + Vite single-page application (SPA). It serves as the admin/agent dashboard, the embeddable chat widget, and the public landing/docs pages — all in one deployable bundle.
 
 ---
 
-If you'd like, I can also:
-- add a short CONTRIBUTING.md with local setup tips,
-- or create a quick script to copy the built `widget.js` to a deployment folder.
+## 📦 Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Tool | Purpose |
+|---|---|
+| **React 19** | UI rendering |
+| **Vite 8** | Dev server & build |
+| **React Router 7** | Client-side routing |
+| **Redux Toolkit** | Global state management |
+| **Axios** | HTTP requests to the backend |
+| **Tailwind CSS 4** | Utility-first styling |
+| **Lucide React** | Icon library |
+| **React Hot Toast** | Notifications |
+| **React Markdown** | Render markdown in chat |
+
+---
+
+## 📁 Project Structure
+
+```
+Frontend/
+├── public/
+│   ├── widget.js          ← Embeddable widget loader script
+│   └── favicon.svg        ← App favicon
+├── src/
+│   ├── app/
+│   │   └── routes/
+│   │       ├── AppRoutes.jsx       ← Root router
+│   │       ├── TenantLoader.jsx    ← Resolves /:slug to tenant
+│   │       ├── ProtectedRoute.jsx  ← Auth guard
+│   │       └── AdminGuard.jsx      ← Admin-only route guard
+│   ├── features/
+│   │   ├── auth/           ← Login / Register pages
+│   │   ├── dashboard/      ← Dashboard with stats & recent tickets
+│   │   ├── tickets/        ← Ticket list + detail pages
+│   │   ├── agents/         ← Agent management (admin only)
+│   │   ├── widgets/        ← Widget management + embedded chat
+│   │   ├── ai-context/     ← Upload docs for AI knowledge base
+│   │   ├── settings/       ← User profile settings
+│   │   ├── landing/        ← Public marketing landing page
+│   │   └── docs/           ← Public API documentation page
+│   ├── shared/
+│   │   └── components/
+│   │       ├── layout/     ← DashboardLayout, Sidebar, Navbar
+│   │       ├── ui/         ← Badge, Table, Spinner, etc.
+│   │       └── pages/      ← NotFoundPage
+│   ├── lib/
+│   │   └── axios.js        ← Configured Axios instance w/ interceptors
+│   └── index.css           ← Global styles
+├── index.html              ← Entry HTML with SEO meta tags
+└── vite.config.js
+```
+
+---
+
+## 🗺️ Routing Architecture
+
+```mermaid
+flowchart TD
+    A[User visits URL] --> B{Path?}
+
+    B --> |/| C[LandingPage]
+    B --> |/docs| D[DocsPage]
+    B --> |/auth| E[AuthPage]
+    B --> |/embed/chat| F[ChatWidgetPage\nEmbedded iframe view]
+
+    B --> |/:tenantSlug/*| G[TenantLoader\nResolve slug → tenantId]
+
+    G --> |Slug not found| H[404 NotFoundPage]
+    G --> |Slug OK| I{ProtectedRoute\nIs user logged in?}
+
+    I --> |No cookie / not authed| J[Redirect to /auth]
+    I --> |Authenticated| K[Tenant Dashboard Routes]
+
+    K --> L[/dashboard]
+    K --> M[/tickets]
+    K --> N[/tickets/:id]
+    K --> O[/settings]
+
+    K --> P{AdminGuard\nRole === admin?}
+    P --> |No - agent role| Q[403 Forbidden]
+    P --> |Yes| R[/agents]
+    P --> |Yes| S[/widgets]
+    P --> |Yes| T[/ai-context]
+```
+
+---
+
+## 🔄 Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Redux
+    participant Backend
+
+    Browser->>Backend: POST /api/auth/login { email, password }
+    Backend-->>Browser: 200 OK + Set-Cookie: jwt (httpOnly)
+    Browser->>Redux: Dispatch setUser(user)
+    Redux-->>Browser: Auth state = authenticated
+
+    Note over Browser: On every request...
+    Browser->>Backend: Any API call (cookie sent automatically)
+    Backend->>Backend: authMiddleware validates JWT from cookie
+    Backend-->>Browser: Protected data
+
+    Browser->>Backend: POST /api/auth/logout
+    Backend-->>Browser: Clears cookie
+    Browser->>Redux: Dispatch clearUser()
+```
+
+---
+
+## 🧩 Embeddable Widget Flow
+
+The widget is designed to be embedded on **any external website** via a single `<script>` tag.
+
+```mermaid
+sequenceDiagram
+    participant ThirdPartySite as 3rd-Party Website
+    participant WidgetJS as /public/widget.js
+    participant IFrame as SupportDesk iframe (/embed/chat)
+    participant Backend
+
+    ThirdPartySite->>WidgetJS: Loads script with data-api-key="..."
+    WidgetJS->>WidgetJS: Creates an iframe pointing to /embed/chat?apiKey=...
+    WidgetJS->>ThirdPartySite: Appends toggle button + hidden iframe to DOM
+
+    Note over ThirdPartySite: User clicks chat button
+
+    WidgetJS->>IFrame: postMessage SUPPORT_DESK_TOGGLE
+    IFrame->>IFrame: Shows chat UI, reads apiKey from URL param
+    IFrame->>Backend: POST /api/public/chat { apiKey, message, email }
+    Backend-->>IFrame: AI response or ticket confirmation
+    IFrame-->>ThirdPartySite: User sees reply in chat bubble
+```
+
+**Embedding snippet:**
+```html
+<script
+  src="https://support-desk-one-lilac.vercel.app/widget.js"
+  data-api-key="YOUR_WIDGET_API_KEY"
+  id="support-desk-widget"
+></script>
+```
+
+---
+
+## 🗃️ State Management (Redux)
+
+The app uses **Redux Toolkit** slices for global state:
+
+| Slice | State Managed |
+|---|---|
+| `authSlice` | `user`, `tenant`, auth loading |
+| `ticketSlice` | `tickets[]`, `total`, `activeFilter`, `activeTicket`, messages |
+
+### Ticket State Flow
+
+```mermaid
+flowchart LR
+    A[TicketsPage mounts] --> B[fetchTickets API call]
+    B --> C[dispatch setTickets\ntickets + total]
+    C --> D[Rendered in Table]
+
+    D --> E{User clicks\nLoad More}
+    E --> F[loadMoreTickets API call\nnextPage param]
+    F --> G[dispatch appendTickets\nno duplicates]
+    G --> D
+
+    H[Filter changes] --> I[Reset page to 1]
+    I --> B
+```
+
+---
+
+## 🖼️ Key Pages & Features
+
+### Dashboard
+- Stat cards: Total, Open, Assigned, Resolved ticket counts
+- Recent tickets table with **Load More** pagination
+
+### Tickets Page
+- Filter by: `all`, `open`, `assigned`, `resolved`
+- Search by customer email or subject
+- **Load More** button appends next page to the list
+
+### Ticket Detail Page
+- Full message thread (customer ↔ AI ↔ Agent)
+- Send message as agent
+- AI reply suggestion button
+- Status change (Open → Assigned → Resolved)
+- Manual agent reassignment (admin only)
+
+### Widgets Page *(Admin Only)*
+- Create/Edit/Delete chat widgets
+- Configure colors, position, title, welcome message
+- Regenerate API keys
+- Copy embed code snippet
+
+### AI Context Page *(Admin Only)*
+- Upload PDFs/docs to feed the AI knowledge base
+- Data is scraped, embedded, and stored in Pinecone vector DB
+
+### Agents Page *(Admin Only)*
+- View all agents under the tenant
+- Approve pending agent registrations
+- Update agent roles
+
+---
+
+## ⚙️ Environment Variables
+
+Create a `.env` file in the `Frontend/` directory:
+
+```env
+VITE_API_URL=https://your-backend-url.com
+```
+
+---
+
+## 🚀 Running Locally
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server (http://localhost:5173)
+npm run dev
+
+# Build for production
+npm run build
+```
