@@ -73,25 +73,54 @@ const DocsPage = () => {
     <div className="h-screen flex flex-col bg-white text-black font-sans selection:bg-black selection:text-white overflow-hidden">
 
       {/* ─── Header ─── */}
-      <header className="shrink-0 flex items-center justify-between px-6 py-3.5 border-b border-black/10 bg-white z-20">
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate("/")} className="p-2 hover:bg-black/5 rounded-lg transition-colors">
-            <ArrowLeft className="w-4 h-4 text-black/50" />
-          </button>
-          <div className="flex items-center gap-2 font-bold text-black tracking-tight">
-            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            SupportDesk <span className="text-black/30 font-normal">/ Docs</span>
+      <header className="shrink-0 flex items-center justify-between px-4 md:px-6 py-3 border-b border-black/10 bg-white z-20">
+      
+      {/* Left */}
+      <div className="flex items-center gap-2 min-w-0">
+        
+        <button
+          onClick={() => navigate("/")}
+          className="p-2 hover:bg-black/5 rounded-lg transition"
+        >
+          <ArrowLeft className="w-4 h-4 text-black/50" />
+        </button>
+
+        {/* Logo + Title */}
+        <div className="flex items-center gap-2 font-bold text-black tracking-tight truncate">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-black rounded-full flex items-center justify-center shrink-0">
+            <Zap className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </div>
+
+          {/* Hide extra text on mobile */}
+          <span className="truncate text-sm md:text-base text-black font-semibold">
+            SupportDesk
+            <span className="hidden sm:inline text-black/30 font-normal">
+              {" "} / Docs
+            </span>
+          </span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="hidden md:block text-xs font-semibold text-black/30 uppercase tracking-widest">v1.0</span>
-          <button onClick={() => navigate("/auth")} className="px-4 py-2 whitespace-nowrap bg-black text-white text-sm font-semibold rounded-lg hover:bg-black/80 transition-colors">
-            Go to Dashboard →
-          </button>
-        </div>
-      </header>
+
+      </div>
+
+      {/* Right */}
+      <div className="flex items-center gap-2 md:gap-3">
+        
+        {/* Hide version on small screens */}
+        <span className="hidden md:block text-xs font-semibold text-black/30 uppercase tracking-widest">
+          v1.0
+        </span>
+
+        {/* Button adapts */}
+        <button
+          onClick={() => navigate("/auth")}
+          className="px-3 md:px-4 py-2 bg-black text-white text-xs md:text-sm font-semibold rounded-lg hover:bg-black/80 transition whitespace-nowrap"
+        >
+          <span className="hidden sm:inline">Go to Dashboard →</span>
+          <span className="sm:hidden">Dashboard</span>
+        </button>
+
+      </div>
+    </header>
 
       {/* ─── Body: Sidebar + Content ─── */}
       <div className="flex flex-1 overflow-hidden">

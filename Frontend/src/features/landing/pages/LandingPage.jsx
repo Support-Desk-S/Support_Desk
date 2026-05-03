@@ -1,36 +1,106 @@
+import { ArrowRight, BarChart2, Bot, Code, Menu, ShieldCheck, Users, X, Zap } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowRight, MessageSquare, Code, ShieldCheck, Zap, BarChart2, Bot, Users, CheckCircle } from "lucide-react";
 
 const LandingPage = () => {
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white overflow-x-hidden">
 
       {/* ─── Navigation ─── */}
-      <nav className="flex items-center justify-between px-10 py-5 border-b border-black/8 sticky top-0 bg-white/90 backdrop-blur-xl z-50">
+      <nav className="flex items-center justify-between px-4 md:px-10 py-4 border-b border-black/10 sticky top-0 bg-white/90 backdrop-blur-xl z-50">
+
+        {/* Logo */}
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 md:w-10 md:h-10 bg-black rounded-full flex items-center justify-center">
+            <Zap className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </div>
-          <span className="font-extrabold text-lg tracking-tight">SupportDesk</span>
+          <span className="font-extrabold text-base md:text-lg tracking-tight">
+            SupportDesk
+          </span>
         </div>
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-black/55">
-          <a href="#features" className="hover:text-black transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-black transition-colors">How it works</a>
-          <button onClick={() => navigate("/docs")} className="hover:text-black transition-colors">Documentation</button>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-black/60">
+          <a href="#features" className="hover:text-black transition">
+            Features
+          </a>
+          <a href="#how-it-works" className="hover:text-black transition">
+            How it works
+          </a>
+          <button
+            onClick={() => navigate("/docs")}
+            className="hover:text-black transition"
+          >
+            Documentation
+          </button>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/auth")} className="text-sm font-medium whitespace-nowrap text-black/70 hover:text-black px-4 py-2 transition-colors">
+
+        {/* Desktop Buttons */}
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={() => navigate("/auth")}
+            className="w-full py-2 rounded-lg border border-black/20 text-sm font-medium hover:bg-black/5 transition"
+          >
             Sign In
           </button>
           <button
             onClick={() => navigate("/auth")}
-            className="px-5 py-2 bg-black text-white text-sm font-semibold rounded-lg hover:bg-black/80 transition-all whitespace-nowrap"
+            className="px-5 py-2 bg-black text-white text-sm font-semibold rounded-lg hover:bg-black/80"
           >
-            Get Started Free
+            Get Started
           </button>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
+        {/* Mobile Dropdown */}
+        {open && (
+          <div className="absolute top-full left-0 w-full bg-white border-b border-black/10 shadow-md md:hidden">
+            <div className="flex flex-col p-4 gap-4 text-sm font-medium">
+
+              <a href="#features" onClick={() => setOpen(false)}>
+                Features
+              </a>
+              <a href="#how-it-works" onClick={() => setOpen(false)}>
+                How it works
+              </a>
+              <button
+                onClick={() => {
+                  navigate("/docs");
+                  setOpen(false);
+                }}
+                className="text-left"
+              >
+                Documentation
+              </button>
+
+              <div className="border-t pt-4 flex flex-col gap-2">
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="text-left text-black/70"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="bg-black text-white py-2 rounded-lg"
+                >
+                  Get Started
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ─── Hero ─── */}
