@@ -64,31 +64,31 @@ Frontend/
 
 ```mermaid
 flowchart TD
-    A[User visits URL] --> B{Path?}
+    A["User visits URL"] --> B{"Path?"}
 
-    B --> |/| C[LandingPage]
-    B --> |/docs| D[DocsPage]
-    B --> |/auth| E[AuthPage]
-    B --> |/embed/chat| F[ChatWidgetPage\nEmbedded iframe view]
+    B --> |/| C["LandingPage"]
+    B --> |/docs| D["DocsPage"]
+    B --> |/auth| E["AuthPage"]
+    B --> |/embed/chat| F["ChatWidgetPage\nEmbedded iframe view"]
 
-    B --> |/:tenantSlug/*| G[TenantLoader\nResolve slug → tenantId]
+    B --> |"/:tenantSlug/*"| G["TenantLoader\nResolve slug to tenantId"]
 
-    G --> |Slug not found| H[404 NotFoundPage]
-    G --> |Slug OK| I{ProtectedRoute\nIs user logged in?}
+    G --> |Slug not found| H["404 NotFoundPage"]
+    G --> |Slug OK| I{"ProtectedRoute\nIs user logged in?"}
 
-    I --> |No cookie / not authed| J[Redirect to /auth]
-    I --> |Authenticated| K[Tenant Dashboard Routes]
+    I --> |No cookie / not authed| J["Redirect to /auth"]
+    I --> |Authenticated| K["Tenant Dashboard Routes"]
 
-    K --> L[/dashboard]
-    K --> M[/tickets]
-    K --> N[/tickets/:id]
-    K --> O[/settings]
+    K --> L["/dashboard"]
+    K --> M["/tickets"]
+    K --> N["/tickets/:id"]
+    K --> O["/settings"]
 
-    K --> P{AdminGuard\nRole === admin?}
-    P --> |No - agent role| Q[403 Forbidden]
-    P --> |Yes| R[/agents]
-    P --> |Yes| S[/widgets]
-    P --> |Yes| T[/ai-context]
+    K --> P{"AdminGuard\nRole = admin?"}
+    P --> |No - agent role| Q["403 Forbidden"]
+    P --> |Yes| R["/agents"]
+    P --> |Yes| S["/widgets"]
+    P --> |Yes| T["/ai-context"]
 ```
 
 ---
