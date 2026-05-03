@@ -165,7 +165,7 @@ const ReassignDropdown = ({ currentAgentId, onReassign }) => {
         />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-52 bg-[#111827] border border-[#1f2937] rounded-[10px] shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 w-52 bg-[#111827] border border-[#1f2937] rounded-[10px] shadow-xl z-504 overflow-hidden">
           <div className="px-3 py-2 border-b border-[#1f2937]">
             <p className="text-xs text-[#6b7280] font-medium">
               Assign to agent
@@ -383,7 +383,7 @@ const TicketDetailPage = () => {
               {/* Info Button */}
               <button
                 onClick={() => setShowInfoSidebar(true)}
-                className="px-3 py-1.5 text-xs rounded-[8px] border border-[#374151] text-[#9ca3af]"
+                className="px-3 lg:hidden py-1.5 text-xs rounded-[8px] border border-[#374151] text-[#9ca3af]"
               >
                 Info
               </button>

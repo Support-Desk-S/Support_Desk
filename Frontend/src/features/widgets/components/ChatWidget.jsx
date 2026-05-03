@@ -19,9 +19,9 @@ const ChatWidget = ({ apiKey }) => {
   const [sending, setSending] = useState(false);
   
   // Ticket State
-  const [customerEmail, setCustomerEmail] = useState(() => localStorage.getItem('sd_widget_email') || '');
+  const [customerEmail, setCustomerEmail] = useState(() => localStorage.getItem(`sd_widget_email_${apiKey}`) || '');
   const [emailPrompted, setEmailPrompted] = useState(false);
-  const [ticketId, setTicketId] = useState(() => localStorage.getItem('sd_widget_ticket') || null);
+  const [ticketId, setTicketId] = useState(() => localStorage.getItem(`sd_widget_ticket_${apiKey}`) || null);
   
   // Widget Visibility State
   const [isOpen, setIsOpen] = useState(false);
@@ -123,6 +123,10 @@ const ChatWidget = ({ apiKey }) => {
         });
       } catch (err) {
         console.error("Polling error", err);
+        if (err.response?.status === 404) {
+          setTicketId(null);
+          localStorage.removeItem(`sd_widget_ticket_${apiKey}`);
+        }
       }
     };
 
@@ -160,7 +164,7 @@ const ChatWidget = ({ apiKey }) => {
         return;
       }
       setCustomerEmail(text);
-      localStorage.setItem('sd_widget_email', text);
+      localStorage.setItem(`sd_widget_email_${apiKey}`, text);
       setEmailPrompted(false);
       
       const pendingQuery = sessionStorage.getItem('pendingQuery') || text;
@@ -177,7 +181,7 @@ const ChatWidget = ({ apiKey }) => {
 
         if (isTicketCreated && newTicketId) {
           setTicketId(newTicketId);
-          localStorage.setItem('sd_widget_ticket', newTicketId);
+          localStorage.setItem(`sd_widget_ticket_${apiKey}`, newTicketId);
         }
       } catch (err) {
         setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'Sorry, we encountered an error processing your request. Please try again later.', createdAt: new Date().toISOString() }]);
@@ -199,7 +203,7 @@ const ChatWidget = ({ apiKey }) => {
 
         if (isTicketCreated && newTicketId) {
           setTicketId(newTicketId);
-          localStorage.setItem('sd_widget_ticket', newTicketId);
+          localStorage.setItem(`sd_widget_ticket_${apiKey}`, newTicketId);
         }
       } catch (err) {
         setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'Sorry, we encountered an error processing your request. Please try again later.', createdAt: new Date().toISOString() }]);
@@ -216,7 +220,13 @@ const ChatWidget = ({ apiKey }) => {
         await sendFollowupMessageApi(apiKey, ticketId, text);
         // Polling will pick it up, but we already optimistically added it
       } catch (err) {
-        setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'Failed to send message. Please try again.', createdAt: new Date().toISOString() }]);
+        if (err.response?.status === 404) {
+          setTicketId(null);
+          localStorage.removeItem(`sd_widget_ticket_${apiKey}`);
+          setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'The current ticket session was closed or not found. Please start a new chat.', createdAt: new Date().toISOString() }]);
+        } else {
+          setMessages(prev => [...prev, { _id: Date.now().toString(), sender: 'ai', message: 'Failed to send message. Please try again.', createdAt: new Date().toISOString() }]);
+        }
       } finally {
         setSending(false);
       }
@@ -314,7 +324,7 @@ const ChatWidget = ({ apiKey }) => {
                 <button
                   onClick={() => {
                     setTicketId(null);
-                    localStorage.removeItem('sd_widget_ticket');
+                    localStorage.removeItem(`sd_widget_ticket_${apiKey}`);
                     setMessages([
                       { _id: 'welcome', sender: 'ai', message: config?.welcomeMessage || 'How can I help you today?', createdAt: new Date().toISOString() }
                     ]);
@@ -360,7 +370,7 @@ const ChatWidget = ({ apiKey }) => {
                 className={`bg-white p-3 rounded-lg border cursor-pointer hover:border-gray-300 transition-colors ${ticketId === ticket._id ? 'border-blue-400' : 'border-gray-200'}`}
                 onClick={() => {
                   setTicketId(ticket._id);
-                  localStorage.setItem('sd_widget_ticket', ticket._id);
+                  localStorage.setItem(`sd_widget_ticket_${apiKey}`, ticket._id);
                   setActiveTab('current');
                   
                   // Optimistically clear messages so they refetch for the new ticket
