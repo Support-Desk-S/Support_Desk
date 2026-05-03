@@ -401,7 +401,6 @@ const ChatWidget = ({ apiKey }) => {
                   setTicketId(ticket._id);
                   localStorage.setItem(`sd_widget_ticket_${apiKey}`, ticket._id);
                   setActiveTab('current');
-
                   // Optimistically clear messages so they refetch for the new ticket
                   // Fetch will happen because ticketId changed and polling useEffect runs
                   setMessages([{ _id: 'welcome', sender: 'ai', message: config?.welcomeMessage || 'Loading...', createdAt: new Date().toISOString() }]);
