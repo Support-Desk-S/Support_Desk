@@ -3,7 +3,7 @@ import axios from 'axios';
 // We create a fresh axios instance for the widget that doesn't rely on JWTs or tenant slugs
 const createWidgetApi = (apiKey) => {
   return axios.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: import.meta.env.VITE_BASE_URL || "http://localhost:3000",
     headers: {
       'x-api-key': apiKey,
       'Content-Type': 'application/json',
