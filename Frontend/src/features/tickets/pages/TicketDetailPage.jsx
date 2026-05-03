@@ -155,7 +155,7 @@ const ReassignDropdown = ({ currentAgentId, onReassign }) => {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[8px] border border-[#374151] text-[#9ca3af] hover:text-white hover:border-[#4b5563] transition-all"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[8px] border border-[#374151] text-[#9ca3af] hover:text-white hover:border-[#4b5563] transition-all cursor-pointer"
       >
         <UserCheck size={10} md:size={13} />
         Reassign
@@ -183,11 +183,10 @@ const ReassignDropdown = ({ currentAgentId, onReassign }) => {
                   onReassign(agent._id);
                   setOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2.5 text-sm transition-colors hover:bg-[#1f2937] flex items-center gap-2 ${
-                  String(agent._id) === String(currentAgentId)
-                    ? "text-white font-medium"
-                    : "text-[#9ca3af]"
-                }`}
+                className={`w-full text-left px-3 py-2.5 text-sm transition-colors hover:bg-[#1f2937] flex items-center gap-2 ${String(agent._id) === String(currentAgentId)
+                  ? "text-white font-medium"
+                  : "text-[#9ca3af]"
+                  }`}
               >
                 <div className="w-6 h-6 rounded-full bg-[#374151] flex items-center justify-center shrink-0">
                   <span className="text-[10px] font-bold text-white">
@@ -319,7 +318,7 @@ const TicketDetailPage = () => {
               {/* Back Button */}
               <button
                 onClick={() => navigate(`/${tenantSlug}/tickets`)}
-                className="mt-1 md:mt-0 shrink-0 text-[#6b7280] hover:text-white transition-colors p-1.5 rounded-md hover:bg-[#1a1a1a]"
+                className="cursor-pointer mt-1 md:mt-0 shrink-0 text-[#6b7280] hover:text-white transition-colors p-1.5 rounded-md hover:bg-[#1a1a1a]"
               >
                 <ArrowLeft size={18} />
               </button>
@@ -373,7 +372,7 @@ const TicketDetailPage = () => {
               ) : (
                 <button
                   onClick={() => handleStatusChange("assigned")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#374151] text-[#9ca3af] hover:text-white hover:border-[#4b5563] transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#374151] text-[#9ca3af] hover:text-white hover:border-[#4b5563] transition-all cursor-pointer"
                 >
                   <RotateCcw size={13} />
                   Reopen
@@ -449,9 +448,8 @@ const TicketDetailPage = () => {
 
             {/* ── Reply box ── */}
             <div
-              className={`px-3 md:px-6 py-4 border-t border-[#1f2937] bg-[#0a0a0a] ${
-                isResolved ? "opacity-60 pointer-events-none" : ""
-              }`}
+              className={`px-3 md:px-6 py-4 border-t border-[#1f2937] bg-[#0a0a0a] ${isResolved ? "opacity-60 pointer-events-none" : ""
+                }`}
             >
               {isResolved && (
                 <div className="flex items-center gap-2 mb-3 text-xs text-[#6b7280] bg-[#111827] border border-[#1f2937] rounded-[8px] px-3 py-2">
@@ -487,7 +485,7 @@ const TicketDetailPage = () => {
                     onClick={handleGetAISuggestion}
                     disabled={aiLoading || isResolved}
                     title="Generate AI suggestion"
-                    className="flex items-center justify-center w-10 h-10 rounded-[10px] bg-violet-900/40 border border-violet-500/30 text-violet-400 hover:bg-violet-900/60 hover:border-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-[10px] bg-violet-900/40 border border-violet-500/30 text-violet-400 hover:bg-violet-900/60 hover:border-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {aiLoading ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -499,7 +497,7 @@ const TicketDetailPage = () => {
                   <button
                     onClick={handleSend}
                     disabled={!replyText.trim() || sending || isResolved}
-                    className="flex items-center justify-center w-10 h-10 rounded-[10px] bg-white text-[#111111] hover:bg-[#f3f4f6] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-[10px] bg-white text-[#111111] hover:bg-[#f3f4f6] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {sending ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -549,10 +547,10 @@ const TicketDetailPage = () => {
                   <InfoRow icon={<Clock size={13} />} label="Created">
                     {ticket?.createdAt
                       ? new Date(ticket.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
                       : "—"}
                   </InfoRow>
                   <InfoRow icon={<Mail size={13} />} label="Customer">
@@ -587,11 +585,10 @@ const TicketDetailPage = () => {
                       </p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            assignedAgent.isOnline
-                              ? "bg-emerald-400"
-                              : "bg-[#374151]"
-                          }`}
+                          className={`w-1.5 h-1.5 rounded-full ${assignedAgent.isOnline
+                            ? "bg-emerald-400"
+                            : "bg-[#374151]"
+                            }`}
                         />
                         <span className="text-[10px] text-[#6b7280]">
                           {assignedAgent.isOnline ? "Online" : "Offline"}
@@ -641,7 +638,7 @@ const TicketDetailPage = () => {
                   {!isResolved ? (
                     <button
                       onClick={() => handleStatusChange("resolved")}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+                      className="cursor-pointer w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
                     >
                       <CheckCircle size={13} />
                       Mark as Resolved
@@ -649,7 +646,7 @@ const TicketDetailPage = () => {
                   ) : (
                     <button
                       onClick={() => handleStatusChange("assigned")}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-[8px] bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-[8px] bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all cursor-pointer"
                     >
                       <RotateCcw size={13} />
                       Reopen Ticket
@@ -658,7 +655,7 @@ const TicketDetailPage = () => {
                   <button
                     onClick={handleGetAISuggestion}
                     disabled={aiLoading}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-[8px] bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-all disabled:opacity-50"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-[8px] bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {aiLoading ? (
                       <Loader2 size={13} className="animate-spin" />

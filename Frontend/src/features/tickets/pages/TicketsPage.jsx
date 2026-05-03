@@ -107,7 +107,7 @@ const TicketsPage = () => {
             e.stopPropagation();
             navigate(`/${tenantSlug}/tickets/${id}`);
           }}
-          className="px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] text-[#111111] transition-colors"
+          className="px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] text-[#111111] transition-colors cursor-pointer"
         >
           Open →
         </button>
@@ -137,7 +137,7 @@ const TicketsPage = () => {
               key={f}
               onClick={() => changeFilter(f)}
               className={[
-                'px-3 py-1.5 rounded-[8px] text-sm font-medium capitalize transition-all duration-150',
+                'px-3 py-1.5 rounded-[8px] text-sm font-medium capitalize transition-all duration-150 cursor-pointer',
                 activeFilter === f
                   ? 'bg-white text-[#111111] shadow-sm'
                   : 'text-[#6b7280] hover:text-[#111111]',

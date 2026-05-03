@@ -47,14 +47,14 @@ const AgentsPage = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => approveUser(id, !row.isApproved)}
-            className="px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] transition-colors text-[#111111]"
+            className="cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] transition-colors text-[#111111]"
           >
             {row.isApproved ? 'Suspend' : 'Approve'}
           </button>
           {row.role === 'agent' && (
             <button
               onClick={() => updateRole(id, 'admin')}
-              className="px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] transition-colors text-[#111111]"
+              className="cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] transition-colors text-[#111111]"
             >
               Make Admin
             </button>
