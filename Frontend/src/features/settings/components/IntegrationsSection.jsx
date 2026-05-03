@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plug, Plus, Trash2, Save, X } from "lucide-react";
+import { Plug, Plus, Trash2, Save, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { updateIntegrationsApi } from "../../tenant/services/tenant.service";
 import { setTenant } from "../../tenant/state/tenantSlice";
@@ -11,11 +11,21 @@ const IntegrationsSection = () => {
   const [integrations, setIntegrations] = useState(
     currentTenant?.integrations || [],
   );
+  const [expandedIntegrations, setExpandedIntegrations] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const toggleExpand = (index) => {
+    setExpandedIntegrations((prev) =>
+      prev.includes(index)
+        ? prev.filter((i) => i !== index)
+        : [...prev, index]
+    );
+  };
+
   const handleAddIntegration = () => {
+    const newIndex = integrations.length;
     setIntegrations([
       ...integrations,
       {
@@ -25,6 +35,7 @@ const IntegrationsSection = () => {
         endpoints: [],
       },
     ]);
+    setExpandedIntegrations([...expandedIntegrations, newIndex]);
   };
 
   const handleRemoveIntegration = (index) => {
@@ -100,16 +111,28 @@ const IntegrationsSection = () => {
     setSuccess("");
     try {
       const response = await updateIntegrationsApi(integrations);
-      dispatch(setTenant(response.data.data));
-      setSuccess("Integrations saved successfully!");
-      // Optionally reset API keys to empty strings to avoid showing encrypted ones
-      const cleanedIntegrations = response.data.data.integrations.map((int) => {
-        if (int.auth) int.auth.key = "";
-        return int;
-      });
-      setIntegrations(cleanedIntegrations);
+
+      if (response.data?.success) {
+        dispatch(setTenant(response.data.data));
+
+        // Optionally reset API keys to empty strings to avoid showing encrypted ones
+        const cleanedIntegrations = (response.data.data?.integrations || []).map((int) => {
+          return {
+            ...int,
+            auth: int.auth ? { ...int.auth, key: "" } : { type: "none", key: "", headerName: "" }
+          };
+        });
+
+        setIntegrations(cleanedIntegrations);
+        setExpandedIntegrations([]);
+        setSuccess("Integrations saved successfully!");
+      } else {
+        setError(response.data?.message || "Failed to save integrations.");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to save integrations.");
+      console.error("Integration Save Error:", err);
+      const errorMsg = err.response?.data?.message || err.message || "Failed to save integrations.";
+      setError(`Error: ${errorMsg}`);
     } finally {
       setIsSaving(false);
     }
@@ -148,306 +171,332 @@ const IntegrationsSection = () => {
         </p>
       ) : (
         <div className="space-y-6">
-          {integrations.map((integration, iIndex) => (
-            <div
-              key={iIndex}
-              className="border border-(--color-secondary) rounded-[10px] p-5 space-y-4"
-            >
-              <div className="flex justify-between items-start">
-                <h3 className="font-medium text-sm">
-                  Integration {iIndex + 1}
-                </h3>
-                <button
-                  onClick={() => handleRemoveIntegration(iIndex)}
-                  className="text-red-500 hover:bg-red-500/10 p-1 rounded"
+          {integrations.map((integration, iIndex) => {
+            const isExpanded = expandedIntegrations.includes(iIndex);
+            return (
+              <div
+                key={iIndex}
+                className="border border-(--color-secondary) rounded-[10px] overflow-hidden"
+              >
+                <div
+                  className="flex justify-between items-center bg-(--color-bg-subtle) p-4 cursor-pointer hover:bg-(--color-bg-default) transition-colors"
+                  onClick={() => toggleExpand(iIndex)}
                 >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs mb-1 text-(--color-text-secondary)">
-                    Name
-                  </label>
-                  <input
-                    value={integration.name}
-                    onChange={(e) =>
-                      handleIntegrationChange(iIndex, "name", e.target.value)
-                    }
-                    placeholder="e.g. Stripe API"
-                    className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-2 text-sm focus:outline-none focus:border-(--color-primary)"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs mb-1 text-(--color-text-secondary)">
-                    Base URL
-                  </label>
-                  <input
-                    value={integration.baseUrl}
-                    onChange={(e) =>
-                      handleIntegrationChange(iIndex, "baseUrl", e.target.value)
-                    }
-                    placeholder="https://api.example.com"
-                    className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-2 text-sm focus:outline-none focus:border-(--color-primary)"
-                  />
-                </div>
-              </div>
-
-              {/* Auth Settings */}
-              <div className="bg-(--color-bg-default) p-4 rounded-lg border border-(--color-secondary) space-y-3">
-                <h4 className="text-xs font-semibold">Authentication</h4>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
-                      Auth Type
-                    </label>
-                    <select
-                      value={integration.auth.type}
-                      onChange={(e) =>
-                        handleAuthChange(iIndex, "type", e.target.value)
-                      }
-                      className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-1.5 text-sm"
-                    >
-                      <option value="none">None</option>
-                      <option value="bearer">Bearer Token</option>
-                      <option value="apiKey">API Key</option>
-                    </select>
+                  <div className="flex flex-col">
+                    <h3 className="font-medium text-sm">
+                      {integration.name || `Integration ${iIndex + 1}`}
+                    </h3>
+                    {integration.baseUrl && (
+                      <span className="text-xs text-(--color-text-secondary) mt-1">{integration.baseUrl}</span>
+                    )}
                   </div>
-                  {integration.auth.type !== "none" && (
-                    <>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleExpand(iIndex); }}
+                      className="text-(--color-text-secondary) hover:text-(--color-primary) flex items-center gap-1 text-xs"
+                    >
+                      {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <span className="hidden sm:inline">{isExpanded ? "Collapse" : "Edit"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleRemoveIntegration(iIndex); }}
+                      className="text-red-500 hover:bg-red-500/10 p-1.5 rounded"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {isExpanded && (
+                  <div className="p-5 space-y-4 border-t border-(--color-secondary)">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
-                          Key
+                        <label className="block text-xs mb-1 text-(--color-text-secondary)">
+                          Name
                         </label>
                         <input
-                          type="password"
-                          value={integration.auth.key}
+                          value={integration.name}
                           onChange={(e) =>
-                            handleAuthChange(iIndex, "key", e.target.value)
+                            handleIntegrationChange(iIndex, "name", e.target.value)
                           }
-                          placeholder={
-                            integration.auth.key
-                              ? "Encrypted (Edit to change)"
-                              : "Enter secret key"
-                          }
-                          className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-1.5 text-sm"
+                          placeholder="e.g. Stripe API"
+                          className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-2 text-sm focus:outline-none focus:border-(--color-primary)"
                         />
                       </div>
-                      {integration.auth.type === "apiKey" && (
+                      <div>
+                        <label className="block text-xs mb-1 text-(--color-text-secondary)">
+                          Base URL
+                        </label>
+                        <input
+                          value={integration.baseUrl}
+                          onChange={(e) =>
+                            handleIntegrationChange(iIndex, "baseUrl", e.target.value)
+                          }
+                          placeholder="https://api.example.com"
+                          className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-2 text-sm focus:outline-none focus:border-(--color-primary)"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Auth Settings */}
+                    <div className="bg-(--color-bg-default) p-4 rounded-lg border border-(--color-secondary) space-y-3">
+                      <h4 className="text-xs font-semibold">Authentication</h4>
+                      <div className="grid md:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
-                            Header Name
+                            Auth Type
                           </label>
-                          <input
-                            value={integration.auth.headerName}
+                          <select
+                            value={integration.auth.type}
                             onChange={(e) =>
-                              handleAuthChange(
-                                iIndex,
-                                "headerName",
-                                e.target.value,
-                              )
+                              handleAuthChange(iIndex, "type", e.target.value)
                             }
-                            placeholder="e.g. x-api-key"
                             className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-1.5 text-sm"
-                          />
+                          >
+                            <option value="none">None</option>
+                            <option value="bearer">Bearer Token</option>
+                            <option value="apiKey">API Key</option>
+                          </select>
                         </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Endpoints */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-xs font-semibold">Endpoints (Tools)</h4>
-                  <button
-                    onClick={() => handleAddEndpoint(iIndex)}
-                    className="text-xs text-(--color-primary) flex items-center gap-1 hover:underline"
-                  >
-                    <Plus size={12} /> Add Endpoint
-                  </button>
-                </div>
-
-                {integration.endpoints.map((endpoint, eIndex) => (
-                  <div
-                    key={eIndex}
-                    className="bg-(--color-bg-default) p-4 rounded-lg border border-(--color-secondary) space-y-3 relative"
-                  >
-                    <button
-                      onClick={() => handleRemoveEndpoint(iIndex, eIndex)}
-                      className="absolute top-3 right-3 text-(--color-text-secondary) hover:text-red-500"
-                    >
-                      <X size={14} />
-                    </button>
-
-                    <div className="grid md:grid-cols-3 gap-3 pr-6">
-                      <div>
-                        <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
-                          Tool Name (Unique)
-                        </label>
-                        <input
-                          value={endpoint.name}
-                          onChange={(e) =>
-                            handleEndpointChange(
-                              iIndex,
-                              eIndex,
-                              "name",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="e.g. getOrderStatus"
-                          className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
-                          Method
-                        </label>
-                        <select
-                          value={endpoint.method}
-                          onChange={(e) =>
-                            handleEndpointChange(
-                              iIndex,
-                              eIndex,
-                              "method",
-                              e.target.value,
-                            )
-                          }
-                          className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
-                        >
-                          <option value="GET">GET</option>
-                          <option value="POST">POST</option>
-                          <option value="PUT">PUT</option>
-                          <option value="DELETE">DELETE</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
-                          Path
-                        </label>
-                        <input
-                          value={endpoint.path}
-                          onChange={(e) =>
-                            handleEndpointChange(
-                              iIndex,
-                              eIndex,
-                              "path",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="e.g. /orders/:id"
-                          className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
-                        />
+                        {integration.auth.type !== "none" && (
+                          <>
+                            <div>
+                              <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                                Key
+                              </label>
+                              <input
+                                type="password"
+                                value={integration.auth.key}
+                                onChange={(e) =>
+                                  handleAuthChange(iIndex, "key", e.target.value)
+                                }
+                                placeholder={
+                                  integration.auth.key
+                                    ? "Encrypted (Edit to change)"
+                                    : "Enter secret key"
+                                }
+                                className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-1.5 text-sm"
+                              />
+                            </div>
+                            {integration.auth.type === "apiKey" && (
+                              <div>
+                                <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                                  Header Name
+                                </label>
+                                <input
+                                  value={integration.auth.headerName}
+                                  onChange={(e) =>
+                                    handleAuthChange(
+                                      iIndex,
+                                      "headerName",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="e.g. x-api-key"
+                                  className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-1.5 text-sm"
+                                />
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
-                        Description for AI
-                      </label>
-                      <input
-                        value={endpoint.description}
-                        onChange={(e) =>
-                          handleEndpointChange(
-                            iIndex,
-                            eIndex,
-                            "description",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="Explain when and how AI should use this tool..."
-                        className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
-                      />
-                    </div>
-
-                    {/* Parameters */}
-                    <div className="pt-2 border-t border-(--color-secondary)">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="block text-[10px] uppercase text-(--color-text-secondary)">
-                          Parameters
-                        </label>
+                    {/* Endpoints */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-xs font-semibold">Endpoints (Tools)</h4>
                         <button
-                          onClick={() => handleAddParam(iIndex, eIndex)}
-                          className="text-[10px] text-(--color-primary) flex items-center hover:underline"
+                          onClick={() => handleAddEndpoint(iIndex)}
+                          className="text-xs text-(--color-primary) flex items-center gap-1 hover:underline"
                         >
-                          <Plus size={10} className="mr-1" /> Add Param
+                          <Plus size={12} /> Add Endpoint
                         </button>
                       </div>
 
-                      {endpoint.params.length > 0 && (
-                        <div className="space-y-2">
-                          {endpoint.params.map((param, pIndex) => (
-                            <div
-                              key={pIndex}
-                              className="flex items-center gap-2"
-                            >
+                      {integration.endpoints.map((endpoint, eIndex) => (
+                        <div
+                          key={eIndex}
+                          className="bg-(--color-bg-default) p-4 rounded-lg border border-(--color-secondary) space-y-3 relative"
+                        >
+                          <button
+                            onClick={() => handleRemoveEndpoint(iIndex, eIndex)}
+                            className="absolute top-3 right-3 text-(--color-text-secondary) hover:text-red-500"
+                          >
+                            <X size={14} />
+                          </button>
+
+                          <div className="grid md:grid-cols-3 gap-3 pr-6">
+                            <div>
+                              <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                                Tool Name (Unique)
+                              </label>
                               <input
-                                value={param.name}
+                                value={endpoint.name}
                                 onChange={(e) =>
-                                  handleParamChange(
+                                  handleEndpointChange(
                                     iIndex,
                                     eIndex,
-                                    pIndex,
                                     "name",
                                     e.target.value,
                                   )
                                 }
-                                placeholder="Param name"
-                                className="flex-1 bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[4px] px-2 py-1 text-xs"
+                                placeholder="e.g. getOrderStatus"
+                                className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
                               />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                                Method
+                              </label>
                               <select
-                                value={param.type}
+                                value={endpoint.method}
                                 onChange={(e) =>
-                                  handleParamChange(
+                                  handleEndpointChange(
                                     iIndex,
                                     eIndex,
-                                    pIndex,
-                                    "type",
+                                    "method",
                                     e.target.value,
                                   )
                                 }
-                                className="w-24 bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[4px] px-1 py-1 text-xs"
+                                className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
                               >
-                                <option value="string">String</option>
-                                <option value="number">Number</option>
-                                <option value="boolean">Boolean</option>
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
                               </select>
-                              <label className="flex items-center gap-1 text-[10px]">
-                                <input
-                                  type="checkbox"
-                                  checked={param.required}
-                                  onChange={(e) =>
-                                    handleParamChange(
-                                      iIndex,
-                                      eIndex,
-                                      pIndex,
-                                      "required",
-                                      e.target.checked,
-                                    )
-                                  }
-                                />
-                                Req.
+                            </div>
+                            <div>
+                              <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                                Path
+                              </label>
+                              <input
+                                value={endpoint.path}
+                                onChange={(e) =>
+                                  handleEndpointChange(
+                                    iIndex,
+                                    eIndex,
+                                    "path",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="e.g. /orders/:id"
+                                className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                              Description for AI
+                            </label>
+                            <input
+                              value={endpoint.description}
+                              onChange={(e) =>
+                                handleEndpointChange(
+                                  iIndex,
+                                  eIndex,
+                                  "description",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Explain when and how AI should use this tool..."
+                              className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
+                            />
+                          </div>
+
+                          {/* Parameters */}
+                          <div className="pt-2 border-t border-(--color-secondary)">
+                            <div className="flex justify-between items-center mb-2">
+                              <label className="block text-[10px] uppercase text-(--color-text-secondary)">
+                                Parameters
                               </label>
                               <button
-                                onClick={() =>
-                                  handleRemoveParam(iIndex, eIndex, pIndex)
-                                }
-                                className="text-red-500 p-1"
+                                onClick={() => handleAddParam(iIndex, eIndex)}
+                                className="text-[10px] text-(--color-primary) flex items-center hover:underline"
                               >
-                                <Trash2 size={12} />
+                                <Plus size={10} className="mr-1" /> Add Param
                               </button>
                             </div>
-                          ))}
+
+                            {endpoint.params.length > 0 && (
+                              <div className="space-y-2">
+                                {endpoint.params.map((param, pIndex) => (
+                                  <div
+                                    key={pIndex}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <input
+                                      value={param.name}
+                                      onChange={(e) =>
+                                        handleParamChange(
+                                          iIndex,
+                                          eIndex,
+                                          pIndex,
+                                          "name",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="Param name"
+                                      className="flex-1 bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[4px] px-2 py-1 text-xs"
+                                    />
+                                    <select
+                                      value={param.type}
+                                      onChange={(e) =>
+                                        handleParamChange(
+                                          iIndex,
+                                          eIndex,
+                                          pIndex,
+                                          "type",
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="w-24 bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[4px] px-1 py-1 text-xs"
+                                    >
+                                      <option value="string">String</option>
+                                      <option value="number">Number</option>
+                                      <option value="boolean">Boolean</option>
+                                    </select>
+                                    <label className="flex items-center gap-1 text-[10px]">
+                                      <input
+                                        type="checkbox"
+                                        checked={param.required}
+                                        onChange={(e) =>
+                                          handleParamChange(
+                                            iIndex,
+                                            eIndex,
+                                            pIndex,
+                                            "required",
+                                            e.target.checked,
+                                          )
+                                        }
+                                      />
+                                      Req.
+                                    </label>
+                                    <button
+                                      onClick={() =>
+                                        handleRemoveParam(iIndex, eIndex, pIndex)
+                                      }
+                                      className="text-red-500 p-1"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           <div className="flex justify-end pt-4 border-t border-(--color-secondary)">
             <button
