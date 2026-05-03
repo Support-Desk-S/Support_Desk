@@ -148,7 +148,7 @@ const IntegrationsSection = () => {
 
         <button
           onClick={handleAddIntegration}
-          className="flex items-center justify-center gap-2 w-full sm:w-auto bg-(--color-primary) text-white px-3 py-1.5 rounded-lg text-sm hover:opacity-90 transition-opacity"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto bg-(--color-primary) text-white px-3 py-1.5 rounded-lg text-sm hover:opacity-90 transition-opacity cursor-pointer"
         >
           <Plus size={16} /> Add Integration
         </button>
@@ -502,7 +502,7 @@ const IntegrationsSection = () => {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 bg-(--color-primary) text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              className="flex items-center gap-2 bg-(--color-primary) text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 cursor-pointer"
             >
               <Save size={16} /> {isSaving ? "Saving..." : "Save Integrations"}
             </button>
