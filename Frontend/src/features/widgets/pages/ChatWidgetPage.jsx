@@ -1,15 +1,15 @@
-import React from 'react';
-import { useSearchParams } from 'react-router';
-import ChatWidget from '../components/ChatWidget';
+import React from "react";
+import { useSearchParams } from "react-router";
+import ChatWidget from "../components/ChatWidget";
 
 const ChatWidgetPage = () => {
   const [searchParams] = useSearchParams();
-  const apiKey = searchParams.get('apiKey');
+  const apiKey = searchParams.get("apiKey");
 
   // We set h-screen w-screen to fill the iframe entirely.
   // The iframe itself is rounded and styled by the injected widget.js
   return (
-    <div className="h-screen w-screen bg-transparent overflow-hidden">
+    <div className="bg-transparent overflow-hidden">
       {apiKey ? (
         <ChatWidget apiKey={apiKey} />
       ) : (

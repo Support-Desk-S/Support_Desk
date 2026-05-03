@@ -103,10 +103,9 @@ const INITIAL_FORM = {
   position: "bottom-right",
   width: 350,
   height: 500,
-  
+
   showAvatar: true,
   showTimestamps: true,
-  allowedDomains: "",
   isActive: true,
 };
 
@@ -221,27 +220,19 @@ const WidgetFormFields = ({ form, setForm }) => (
         />
         Show Timestamps
       </label>
+
+      {/* ACTIVE */}
+      {"isActive" in form && (
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={form.isActive}
+            onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+          />
+          Active Widget
+        </label>
+      )}
     </div>
-
-    {/* DOMAINS */}
-    <Input
-      label="Allowed Domains"
-      value={form.allowedDomains}
-      onChange={(e) => setForm({ ...form, allowedDomains: e.target.value })}
-      placeholder="example.com, mysite.com"
-    />
-
-    {/* ACTIVE */}
-    {"isActive" in form && (
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={form.isActive}
-          onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-        />
-        Active Widget
-      </label>
-    )}
   </div>
 );
 
@@ -312,7 +303,6 @@ const WidgetsPage = () => {
       position: widget.position ?? "bottom-right",
       width: widget.width ?? 350,
       height: widget.height ?? 500,
-      allowedDomains: (widget.allowedDomains ?? []).join(", "),
       secondaryColor: widget.secondaryColor ?? "#6c757d",
       textColor: widget.textColor ?? "#212529",
       backgroundColor: widget.backgroundColor ?? "#ffffff",
