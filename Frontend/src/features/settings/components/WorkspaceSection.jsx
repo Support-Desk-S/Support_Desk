@@ -19,7 +19,7 @@ const WorkspaceSection = () => {
           <input
             value={currentTenant?.name}
             disabled
-            className="w-full border border-(--color-secondary) rounded-[10px] px-3 py-2 text-sm"
+            className="w-full border border-(--color-secondary) rounded-[10px] px-3 py-2 text-sm  opacity-60"
           />
         </div>
 
@@ -30,7 +30,7 @@ const WorkspaceSection = () => {
           <input
             value={currentTenant?.supportEmail}
             disabled
-            className="w-full border border-(--color-secondary) rounded-[10px] px-3 py-2 text-sm"
+            className="w-full border border-(--color-secondary) rounded-[10px] px-3 py-2 text-sm opacity-60"
           />
         </div>
 
