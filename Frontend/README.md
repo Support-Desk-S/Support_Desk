@@ -134,11 +134,3 @@ If you change widget code, rebuild the frontend and deploy the `dist` artifacts 
 
 - Backend integration lives in the sibling `Backend` folder — ensure the backend is running when developing features that call APIs.
 - See `src/features/*` for feature-specific implementation and `shared/components` for reusable UI.
-
----
-
-If you'd like, I can also:
-- add a short CONTRIBUTING.md with local setup tips,
-- or create a quick script to copy the built `widget.js` to a deployment folder.
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
