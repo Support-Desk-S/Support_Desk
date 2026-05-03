@@ -34,6 +34,17 @@ router.patch(
 );
 
 /**
+ * @route PATCH /api/admin/users/:userId/suspend
+ * @desc Suspend an agent (set isApproved=false, isOnline=false)
+ */
+router.patch(
+  "/users/:userId/suspend",
+  isAdmin,
+  tenantMiddleware,
+  adminController.suspendUser
+);
+
+/**
  * @route PATCH /api/admin/users/:userId/role
  */
 router.patch(
