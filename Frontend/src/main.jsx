@@ -12,7 +12,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <ConfirmProvider>
         <App />
-        <Toaster />``
+        <Toaster />
       </ConfirmProvider>
     </BrowserRouter>
   </Provider>,
