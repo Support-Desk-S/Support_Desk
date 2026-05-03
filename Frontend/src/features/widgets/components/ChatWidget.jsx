@@ -304,39 +304,39 @@ const ChatWidget = ({ apiKey }) => {
                   <div>
                     <div
                       className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[13.5px] leading-relaxed shadow-sm ${isCustomer
-                          ? 'rounded-tr-sm text-white ml-auto'
-                          : 'rounded-tl-sm border border-gray-100'
+                        ? 'rounded-tr-sm text-white ml-auto'
+                        : 'rounded-tl-sm border border-gray-100'
                         }`}
                       style={isCustomer ? { backgroundColor: config.primaryColor } : { backgroundColor: '#ffffff', color: config.textColor || '#212529', borderColor: config.secondaryColor || '#e5e7eb' }}
                     >
-                    {isCustomer ? (
-                      msg.message.split('\n').map((line, i) => <p key={i} className="min-h-[14px]">{line}</p>)
-                    ) : (
-                      <ReactMarkdown
-                        components={{
-                          p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                          a: ({ node, ...props }) => <a className="text-blue-600 hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />,
-                          ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
-                          ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
-                          li: ({ node, ...props }) => <li {...props} />,
-                          strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900" {...props} />,
-                          code: ({ node, inline, ...props }) =>
-                            inline ? (
-                              <code className="bg-gray-100 px-1.5 py-0.5 rounded-md text-xs font-mono text-gray-800" {...props} />
-                            ) : (
-                              <pre className="bg-gray-100 p-2.5 rounded-md text-xs overflow-x-auto mb-2 text-gray-800"><code className="font-mono" {...props} /></pre>
-                            )
-                        }}
-                      >
-                        {msg.message}
-                      </ReactMarkdown>
-                    )}
-                  </div>
-                  {config.showTimestamps !== false && msg.createdAt && (
-                    <div className={`text-[10px] mt-1 text-gray-400 ${isCustomer ? 'text-right' : 'text-left'}`}>
-                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {isCustomer ? (
+                        msg.message.split('\n').map((line, i) => <p key={i} className="min-h-[14px]">{line}</p>)
+                      ) : (
+                        <ReactMarkdown
+                          components={{
+                            p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                            a: ({ node, ...props }) => <a className="text-blue-600 hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />,
+                            ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                            ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
+                            li: ({ node, ...props }) => <li {...props} />,
+                            strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900" {...props} />,
+                            code: ({ node, inline, ...props }) =>
+                              inline ? (
+                                <code className="bg-gray-100 px-1.5 py-0.5 rounded-md text-xs font-mono text-gray-800" {...props} />
+                              ) : (
+                                <pre className="bg-gray-100 p-2.5 rounded-md text-xs overflow-x-auto mb-2 text-gray-800"><code className="font-mono" {...props} /></pre>
+                              )
+                          }}
+                        >
+                          {msg.message}
+                        </ReactMarkdown>
+                      )}
                     </div>
-                  )}
+                    {config.showTimestamps !== false && msg.createdAt && (
+                      <div className={`text-[10px] mt-1 text-gray-400 ${isCustomer ? 'text-right' : 'text-left'}`}>
+                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
