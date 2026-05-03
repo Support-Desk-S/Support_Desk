@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useNavigate } from 'react-router';
+import { useConfirm } from '../../../app/context/ConfirmContext';
 
 const navItems = [
   { label: 'Dashboard', path: 'dashboard', icon: LayoutDashboard },
@@ -25,7 +26,7 @@ const navItems = [
 ];
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-  const { tenantSlug } = useParams();
+  const { tenantSlug } = useParams();``
   const { user } = useSelector((state) => state.auth);
   const { currentTenant } = useSelector((state) => state.tenant);
   const dispatch = useDispatch();
@@ -38,6 +39,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '??';
+
+    const { confirm } = useConfirm();
 
   return (
     <>
@@ -114,6 +117,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </div>
             <button
               onClick={async () => {
+                const ok = await confirm({
+                  title: "Logout",
+                  message: "Are you sure you want to logout?",
+                });
+            
+                if (!ok) return;
                 await handleLogout();
                 setIsOpen(false);
               }}

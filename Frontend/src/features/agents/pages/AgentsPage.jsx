@@ -4,8 +4,11 @@ import { useAgents } from '../hooks/useAgents';
 import Badge from '../../../shared/components/ui/Badge';
 import Table from '../../../shared/components/ui/Table';
 import { Users } from 'lucide-react';
+import { useConfirm } from '../../../app/context/ConfirmContext';
 
 const AgentsPage = () => {
+  const { confirm } = useConfirm();
+
   const { users, loading, fetchUsers, approveUser, updateRole } = useAgents();
 
   useEffect(() => {
@@ -46,18 +49,42 @@ const AgentsPage = () => {
       render: (id, row) => (
         <div className="flex items-center gap-2">
           <button
-            onClick={() => approveUser(id, !row.isApproved)}
-            className="cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] transition-colors text-[#111111]"
+            onClick={async () => {
+              const action = row.isApproved ? "Suspend" : "Approve";
+
+              const ok = await confirm({
+                title: `${action} User`,
+                message: `Are you sure you want to ${action.toLowerCase()} this user?`,
+              });
+
+              if (!ok) return;
+
+              await approveUser(id, !row.isApproved);
+            }}
+            className={`cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border transition-colors ${
+              row.isApproved
+                ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                : "bg-white text-[#111] border-[#e5e7eb] hover:bg-[#f9fafb]"
+            }`}
           >
-            {row.isApproved ? 'Suspend' : 'Approve'}
+            {row.isApproved ? "Suspend" : "Approve"}
           </button>
           {row.role === 'agent' && (
-            <button
-              onClick={() => updateRole(id, 'admin')}
-              className="cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] transition-colors text-[#111111]"
-            >
-              Make Admin
-            </button>
+           <button
+           onClick={async () => {
+             const ok = await confirm({
+               title: "Promote User",
+               message: "Are you sure you want to make this user an admin? This action grants full control over the system.",
+             });
+         
+             if (!ok) return;
+         
+             await updateRole(id, "admin");
+           }}
+          className="cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors"
+         >
+           Make Admin
+         </button>
           )}
         </div>
       ),
