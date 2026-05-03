@@ -1,19 +1,39 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router";
-import LandingPage from "../../features/landing/pages/LandingPage";
-import DocsPage from "../../features/docs/pages/DocsPage";
-import AuthPage from "../../features/auth/pages/AuthPage";
-import DashboardPage from "../../features/dashboard/pages/DashboardPage";
-import TicketsPage from "../../features/tickets/pages/TicketsPage";
-import TicketDetailPage from "../../features/tickets/pages/TicketDetailPage";
-import AgentsPage from "../../features/agents/pages/AgentsPage";
-import ChatWidgetPage from "../../features/widgets/pages/ChatWidgetPage";
-import WidgetsPage from "../../features/widgets/pages/WidgetsPage";
-import AiContextPage from "../../features/ai-context/pages/AiContextPage";
-import SettingsPage from "../../features/settings/pages/SettingsPage";
-import ProtectedRoute from "./ProtectedRoute";
+const LandingPage = lazy(
+  () => import("../../features/landing/pages/LandingPage"),
+);
+const DocsPage = lazy(() => import("../../features/docs/pages/DocsPage"));
+const AuthPage = lazy(() => import("../../features/auth/pages/AuthPage"));
+const DashboardPage = lazy(
+  () => import("../../features/dashboard/pages/DashboardPage"),
+);
+const TicketsPage = lazy(
+  () => import("../../features/tickets/pages/TicketsPage"),
+);
+const TicketDetailPage = lazy(
+  () => import("../../features/tickets/pages/TicketDetailPage"),
+);
+const AgentsPage = lazy(() => import("../../features/agents/pages/AgentsPage"));
+const ChatWidgetPage = lazy(
+  () => import("../../features/widgets/pages/ChatWidgetPage"),
+);
+const WidgetsPage = lazy(
+  () => import("../../features/widgets/pages/WidgetsPage"),
+);
+const AiContextPage = lazy(
+  () => import("../../features/ai-context/pages/AiContextPage"),
+);
+const SettingsPage = lazy(
+  () => import("../../features/settings/pages/SettingsPage"),
+);
+const NotFoundPage = lazy(
+  () => import("../../shared/components/pages/NotFoundPage"),
+);
 import TenantLoader from "./TenantLoader";
 import AdminGuard from "./AdminGuard";
-import NotFoundPage from "../../shared/components/pages/NotFoundPage";
+import ProtectedRoute from "./ProtectedRoute";
+import { PageLoader } from "../../shared/components/ui/Spinner";
 
 /**
  * Route Protection Layers:
@@ -23,66 +43,67 @@ import NotFoundPage from "../../shared/components/pages/NotFoundPage";
  */
 const AppRoutes = () => {
   return (
-    <Routes>
-      {/* Public Pages */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/docs" element={<DocsPage />} />
-      <Route path="/auth" element={<AuthPage />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Public Pages */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/docs" element={<DocsPage />} />
+        <Route path="/auth" element={<AuthPage />} />
 
-      {/* Public: Embed Widget */}
-      <Route path="/embed/chat" element={<ChatWidgetPage />} />
+        {/* Public: Embed Widget */}
+        <Route path="/embed/chat" element={<ChatWidgetPage />} />
 
-      {/* Tenant-scoped routes */}
-      <Route path="/:tenantSlug" element={<TenantLoader />}>
-        {/* All tenant routes require auth */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <Outlet />
-            </ProtectedRoute>
-          }
-        >
-          {/* Default redirect to dashboard */}
-          <Route index element={<Navigate to="dashboard" replace />} />
-
-          {/* Agent + Admin */}
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="tickets" element={<TicketsPage />} />
-          <Route path="tickets/:ticketId" element={<TicketDetailPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-
-
-          {/* Admin only */}
+        {/* Tenant-scoped routes */}
+        <Route path="/:tenantSlug" element={<TenantLoader />}>
+          {/* All tenant routes require auth */}
           <Route
-            path="agents"
             element={
-              <AdminGuard>
-                <AgentsPage />
-              </AdminGuard>
+              <ProtectedRoute>
+                <Outlet />
+              </ProtectedRoute>
             }
-          />
-          <Route
-            path="widgets"
-            element={
-              <AdminGuard>
-                <WidgetsPage />
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="ai-context"
-            element={
-              <AdminGuard>
-                <AiContextPage />
-              </AdminGuard>
-            }
-          />
+          >
+            {/* Default redirect to dashboard */}
+            <Route index element={<Navigate to="dashboard" replace />} />
+
+            {/* Agent + Admin */}
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="tickets" element={<TicketsPage />} />
+            <Route path="tickets/:ticketId" element={<TicketDetailPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+
+            {/* Admin only */}
+            <Route
+              path="agents"
+              element={
+                <AdminGuard>
+                  <AgentsPage />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="widgets"
+              element={
+                <AdminGuard>
+                  <WidgetsPage />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="ai-context"
+              element={
+                <AdminGuard>
+                  <AiContextPage />
+                </AdminGuard>
+              }
+            />
+          </Route>
         </Route>
-      </Route>
 
-      {/* 404 */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        {/* 404 */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   );
 };
 
