@@ -42,9 +42,8 @@ const WidgetPreview = ({ widget }) => {
 
       {/* Widget Box */}
       <div
-        className={`absolute ${
-          isBottom ? "bottom-2" : "top-2"
-        } ${isRight ? "right-2" : "left-2"} w-[200px] shadow-md border flex flex-col overflow-hidden transition-transform group-hover:scale-[1.02]`}
+        className={`absolute ${isBottom ? "bottom-2" : "top-2"
+          } ${isRight ? "right-2" : "left-2"} w-[200px] shadow-md border flex flex-col overflow-hidden transition-transform group-hover:scale-[1.02]`}
         style={{
           backgroundColor,
           borderRadius,
@@ -74,9 +73,8 @@ const WidgetPreview = ({ widget }) => {
 
       {/* Floating Button */}
       <div
-        className={`absolute ${
-          isBottom ? "bottom-2" : "top-2"
-        } ${isRight ? "right-2" : "left-2"}`}
+        className={`absolute ${isBottom ? "bottom-2" : "top-2"
+          } ${isRight ? "right-2" : "left-2"}`}
       >
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow"
@@ -103,7 +101,7 @@ const INITIAL_FORM = {
   position: "bottom-right",
   width: 350,
   height: 500,
-  
+
   showAvatar: true,
   showTimestamps: true,
   allowedDomains: "",
@@ -434,14 +432,14 @@ const WidgetsPage = () => {
                     variant="secondary"
                     size="sm"
                     onClick={() => openKeys(widget)}
-                    className="flex items-center gap-1.5"
+                    className="cursor-pointer flex items-center gap-1.5"
                   >
                     <Key size={13} /> API Keys
                   </Button>
 
                   <button
                     onClick={() => openEdit(widget)}
-                    className="p-1.5 rounded-lg text-[#9ca3af] hover:text-[#111111] hover:bg-[#f3f4f6] transition-colors"
+                    className="cursor-pointer p-1.5 rounded-lg text-[#9ca3af] hover:text-[#111111] hover:bg-[#f3f4f6] transition-colors"
                     title="Edit widget"
                   >
                     <Pencil size={14} />
@@ -449,7 +447,7 @@ const WidgetsPage = () => {
 
                   <button
                     onClick={() => deleteWidget(widget._id)}
-                    className="p-1.5 rounded-lg text-[#9ca3af] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-colors"
+                    className="cursor-pointer p-1.5 rounded-lg text-[#9ca3af] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-colors"
                     title="Delete widget"
                   >
                     <Trash2 size={14} />
@@ -541,6 +539,7 @@ const WidgetsPage = () => {
                     onClick={() =>
                       setShowKeys((s) => ({ ...s, [key._id]: !s[key._id] }))
                     }
+                    className="cursor-pointer"
                   >
                     {showKeys[key._id] ? (
                       <EyeOff size={14} />
@@ -553,7 +552,7 @@ const WidgetsPage = () => {
                     <button onClick={() => copyKey(key.key)}>
                       <Copy
                         size={14}
-                        className="text-[#9ca3af] hover:text-[#111111] transition-colors"
+                        className="cursor-pointer text-[#9ca3af] hover:text-[#111111] transition-colors"
                       />
                     </button>
                   )}
@@ -571,7 +570,7 @@ const WidgetsPage = () => {
                   `<script src="http://localhost:5173/widget.js" data-api-key="${apiKeys[0]?.key || "YOUR_API_KEY"}" id="support-desk-widget"></script>`,
                 )
               }
-              className="flex items-center gap-1.5 text-xs text-[#6b7280] hover:text-[#111111] transition-colors font-medium"
+              className="cursor-pointer flex items-center gap-1.5 text-xs text-[#6b7280] hover:text-[#111111] transition-colors font-medium"
             >
               <Copy size={12} /> Copy Code
             </button>

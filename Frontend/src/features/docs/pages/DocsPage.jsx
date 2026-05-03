@@ -108,11 +108,10 @@ const DocsPage = () => {
                       setActiveSection(sec.id);
                       document.getElementById(sec.id)?.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${
-                      activeSection === sec.id
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${activeSection === sec.id
                         ? "bg-black text-white"
                         : "text-black/60 hover:text-black hover:bg-black/5"
-                    }`}
+                      }`}
                   >
                     {sec.icon}
                     {sec.label}

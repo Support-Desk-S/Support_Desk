@@ -51,9 +51,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
       <aside
         style={{ width: 'var(--sidebar-width)' }}
-        className={`fixed left-0 top-0 h-screen bg-[#0a0a0a] flex flex-col z-30 border-r border-[#1f2937] transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed left-0 top-0 h-screen bg-[#0a0a0a] flex flex-col z-30 border-r border-[#1f2937] transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         {/* Brand */}
         <div className="px-5 py-5 border-b border-[#1f2937]">
@@ -79,53 +78,53 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <ul className="space-y-0.5">
-          {visibleItems.map(({ label, path, icon: Icon }) => (
-            <li key={path}>
-              <NavLink
-                to={`/${tenantSlug}/${path}`}
-                onClick={() => setIsOpen(false)}
-                className={({ isActive }) =>
-                  [
-                    'flex items-center gap-3 px-3 py-2 rounded-[8px] text-sm font-medium transition-all duration-150',
-                    isActive
-                      ? 'bg-white text-[#111111]'
-                      : 'text-[#9ca3af] hover:bg-[#1a1a1a] hover:text-white',
-                  ].join(' ')
-                }
-              >
-                <Icon size={16} strokeWidth={1.8} />
-                {label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </nav>
+        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+          <ul className="space-y-0.5">
+            {visibleItems.map(({ label, path, icon: Icon }) => (
+              <li key={path}>
+                <NavLink
+                  to={`/${tenantSlug}/${path}`}
+                  onClick={() => setIsOpen(false)}
+                  className={({ isActive }) =>
+                    [
+                      'flex items-center gap-3 px-3 py-2 rounded-[8px] text-sm font-medium transition-all duration-150',
+                      isActive
+                        ? 'bg-white text-[#111111]'
+                        : 'text-[#9ca3af] hover:bg-[#1a1a1a] hover:text-white',
+                    ].join(' ')
+                  }
+                >
+                  <Icon size={16} strokeWidth={1.8} />
+                  {label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-      {/* User Footer */}
-      <div className="px-3 pb-4 border-t border-[#1f2937] pt-3">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-[8px] hover:bg-[#1a1a1a] transition-colors">
-          <div className="w-8 h-8 rounded-full bg-[#374151] flex items-center justify-center shrink-0">
-            <span className="text-xs font-semibold text-white">{initials}</span>
+        {/* User Footer */}
+        <div className="px-3 pb-4 border-t border-[#1f2937] pt-3">
+          <div className="flex items-center gap-3 px-2 py-2 rounded-[8px] hover:bg-[#1a1a1a] transition-colors">
+            <div className="w-8 h-8 rounded-full bg-[#374151] flex items-center justify-center shrink-0">
+              <span className="text-xs font-semibold text-white">{initials}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-xs font-medium truncate">{user?.name}</p>
+              <p className="text-[#6b7280] text-xs truncate">{user?.email}</p>
+            </div>
+            <button
+              onClick={async () => {
+                await handleLogout();
+                setIsOpen(false);
+              }}
+              className="cursor-pointer text-[#6b7280] hover:text-white transition-colors p-1"
+              title="Logout"
+            >
+              <LogOut size={14} />
+            </button>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white text-xs font-medium truncate">{user?.name}</p>
-            <p className="text-[#6b7280] text-xs truncate">{user?.email}</p>
-          </div>
-          <button
-            onClick={async () => {
-              await handleLogout();
-              setIsOpen(false);
-            }}
-            className="text-[#6b7280] hover:text-white transition-colors p-1"
-            title="Logout"
-          >
-            <LogOut size={14} />
-          </button>
         </div>
-      </div>
-    </aside>
+      </aside>
     </>
   );
 };
