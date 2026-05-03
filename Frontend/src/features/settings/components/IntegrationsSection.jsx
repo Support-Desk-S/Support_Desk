@@ -3,8 +3,12 @@ import { Plug, Plus, Trash2, Save, X, ChevronDown, ChevronUp } from "lucide-reac
 import { useSelector, useDispatch } from "react-redux";
 import { updateIntegrationsApi } from "../../tenant/services/tenant.service";
 import { setTenant } from "../../tenant/state/tenantSlice";
+import { useConfirm } from "../../../app/context/ConfirmContext";
 
 const IntegrationsSection = () => {
+
+  const { confirm } = useConfirm();
+
   const { currentTenant } = useSelector((state) => state.tenant);
   const dispatch = useDispatch();
 
@@ -201,8 +205,19 @@ const IntegrationsSection = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); handleRemoveIntegration(iIndex); }}
-                      className="text-red-500 hover:bg-red-500/10 p-1.5 rounded"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+
+                        const ok = await confirm({
+                          title: "Remove Integration",
+                          message: "This integration will be removed permanently. This action cannot be undone.",
+                        });
+
+                        if (!ok) return;
+
+                        handleRemoveIntegration(iIndex);
+                      }}
+                      className="text-red-500 hover:bg-red-500/10 p-1.5 rounded cursor-pointer"
                     >
                       <Trash2 size={16} />
                     </button>
