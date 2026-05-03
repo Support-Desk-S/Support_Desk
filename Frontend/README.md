@@ -8,17 +8,17 @@ The SupportDesk frontend is a React + Vite single-page application (SPA). It ser
 
 ## 📦 Tech Stack
 
-| Tool | Purpose |
-|---|---|
-| **React 19** | UI rendering |
-| **Vite 8** | Dev server & build |
-| **React Router 7** | Client-side routing |
-| **Redux Toolkit** | Global state management |
-| **Axios** | HTTP requests to the backend |
-| **Tailwind CSS 4** | Utility-first styling |
-| **Lucide React** | Icon library |
-| **React Hot Toast** | Notifications |
-| **React Markdown** | Render markdown in chat |
+| Tool                | Purpose                      |
+| ------------------- | ---------------------------- |
+| **React 19**        | UI rendering                 |
+| **Vite 8**          | Dev server & build           |
+| **React Router 7**  | Client-side routing          |
+| **Redux Toolkit**   | Global state management      |
+| **Axios**           | HTTP requests to the backend |
+| **Tailwind CSS 4**  | Utility-first styling        |
+| **Lucide React**    | Icon library                 |
+| **React Hot Toast** | Notifications                |
+| **React Markdown**  | Render markdown in chat      |
 
 ---
 
@@ -143,6 +143,7 @@ sequenceDiagram
 ```
 
 **Embedding snippet:**
+
 ```html
 <script
   src="https://support-desk-one-lilac.vercel.app/widget.js"
@@ -157,9 +158,9 @@ sequenceDiagram
 
 The app uses **Redux Toolkit** slices for global state:
 
-| Slice | State Managed |
-|---|---|
-| `authSlice` | `user`, `tenant`, auth loading |
+| Slice         | State Managed                                                  |
+| ------------- | -------------------------------------------------------------- |
+| `authSlice`   | `user`, `tenant`, auth loading                                 |
 | `ticketSlice` | `tickets[]`, `total`, `activeFilter`, `activeTicket`, messages |
 
 ### Ticket State Flow
@@ -184,32 +185,38 @@ flowchart LR
 ## 🖼️ Key Pages & Features
 
 ### Dashboard
+
 - Stat cards: Total, Open, Assigned, Resolved ticket counts
 - Recent tickets table with **Load More** pagination
 
 ### Tickets Page
+
 - Filter by: `all`, `open`, `assigned`, `resolved`
 - Search by customer email or subject
 - **Load More** button appends next page to the list
 
 ### Ticket Detail Page
+
 - Full message thread (customer ↔ AI ↔ Agent)
 - Send message as agent
 - AI reply suggestion button
 - Status change (Open → Assigned → Resolved)
 - Manual agent reassignment (admin only)
 
-### Widgets Page *(Admin Only)*
+### Widgets Page _(Admin Only)_
+
 - Create/Edit/Delete chat widgets
 - Configure colors, position, title, welcome message
 - Regenerate API keys
 - Copy embed code snippet
 
-### AI Context Page *(Admin Only)*
+### AI Context Page _(Admin Only)_
+
 - Upload PDFs/docs to feed the AI knowledge base
 - Data is scraped, embedded, and stored in Pinecone vector DB
 
-### Agents Page *(Admin Only)*
+### Agents Page _(Admin Only)_
+
 - View all agents under the tenant
 - Approve pending agent registrations
 - Update agent roles
