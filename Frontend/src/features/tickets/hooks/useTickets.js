@@ -6,9 +6,11 @@ import toast from 'react-hot-toast';
 
 export const useTickets = () => {
   const dispatch = useDispatch();
-  const { tickets, loading, activeFilter, total } = useSelector((state) => state.tickets);
+  const { tickets, loading, activeFilter, total, lastFetchedTickets } = useSelector((state) => state.tickets);
+  const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 
-  const fetchTickets = useCallback(async (params = {}) => {
+  const fetchTickets = useCallback(async (params = {}, force = false) => {
+    if (!force && lastFetchedTickets && Date.now() - lastFetchedTickets < CACHE_TIME) return;
     try {
       dispatch(setTicketsLoading(true));
       const res = await getTicketsApi(params);
