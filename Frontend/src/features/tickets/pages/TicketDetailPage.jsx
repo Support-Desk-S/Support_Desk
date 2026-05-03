@@ -383,7 +383,7 @@ const TicketDetailPage = () => {
               {/* Info Button */}
               <button
                 onClick={() => setShowInfoSidebar(true)}
-                className="px-3 py-1.5 text-xs rounded-[8px] border border-[#374151] text-[#9ca3af]"
+                className="px-3 lg:hidden py-1.5 text-xs rounded-[8px] border border-[#374151] text-[#9ca3af]"
               >
                 Info
               </button>
