@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useCallback, useEffect } from 'react';
 import { getTicketsApi } from '../services/ticket.service';
-import { setTickets, setTicketsLoading, setActiveFilter } from '../state/ticketSlice';
+import { setTickets, setTicketsLoading, setActiveFilter, appendTickets } from '../state/ticketSlice';
 import toast from 'react-hot-toast';
 
 export const useTickets = () => {
@@ -24,6 +24,18 @@ export const useTickets = () => {
     }
   }, [dispatch]);
 
+  const loadMoreTickets = useCallback(async (params = {}) => {
+    try {
+      const res = await getTicketsApi(params);
+      const result = res.data.data;
+      const ticketsArray = Array.isArray(result) ? result : result?.tickets ?? [];
+      const total = result?.total ?? ticketsArray.length;
+      dispatch(appendTickets({ tickets: ticketsArray, total }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to load more tickets');
+    }
+  }, [dispatch]);
+
 
   const changeFilter = (filter) => {
     dispatch(setActiveFilter(filter));
@@ -35,6 +47,7 @@ export const useTickets = () => {
     activeFilter,
     total,
     fetchTickets,
+    loadMoreTickets,
     changeFilter,
   };
 };

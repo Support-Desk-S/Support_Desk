@@ -9,16 +9,30 @@ import { Search, Plus } from 'lucide-react';
 const FILTERS = ['all', 'open', 'assigned', 'resolved'];
 
 const TicketsPage = () => {
-  const { tickets, loading, activeFilter, fetchTickets, changeFilter } = useTickets();
+  const { tickets, loading, activeFilter, total, fetchTickets, changeFilter, loadMoreTickets } = useTickets();
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
   const navigate = useNavigate();
   const { tenantSlug } = useParams();
 
   useEffect(() => {
-    const params = {};
+    const params = { page: 1 };
     if (activeFilter !== 'all') params.status = activeFilter;
+    setPage(1);
     fetchTickets(params);
   }, [activeFilter]);
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    const params = { page: nextPage };
+    if (activeFilter !== 'all') params.status = activeFilter;
+    await loadMoreTickets(params);
+    setLoadingMore(false);
+  };
+
 
   const filtered = tickets.filter(
     (t) =>
@@ -151,13 +165,24 @@ const TicketsPage = () => {
         <Table
           columns={columns}
           data={filtered}
-          loading={loading}
+          loading={loading && page === 1}
           onRowClick={(row) => navigate(`/${tenantSlug}/tickets/${row._id}`)}
           emptyTitle="No tickets found"
           emptyDescription={
             activeFilter !== 'all' ? `No ${activeFilter} tickets.` : 'No tickets yet.'
           }
         />
+        {tickets.length < total && (
+          <div className="p-4 border-t border-[#e5e7eb] flex justify-center bg-white">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-4 py-2 text-sm font-medium text-[#111111] bg-white border border-[#e5e7eb] rounded-[8px] hover:bg-[#f9fafb] disabled:opacity-50 transition-colors"
+            >
+              {loadingMore ? 'Loading...' : 'Load More Tickets'}
+            </button>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
