@@ -6,11 +6,14 @@ import toast from 'react-hot-toast';
 
 export const useTickets = () => {
   const dispatch = useDispatch();
-  const { tickets, loading, activeFilter, total, lastFetchedTickets } = useSelector((state) => state.tickets);
+  const { tickets, loading, activeFilter, total, lastFetchedTickets, lastFetchedFilter } = useSelector((state) => state.tickets);
   const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 
   const fetchTickets = useCallback(async (params = {}, force = false) => {
-    if (!force && lastFetchedTickets && Date.now() - lastFetchedTickets < CACHE_TIME) return;
+    const requestedFilter = params.status || 'all';
+    const isSameFilter = lastFetchedFilter === requestedFilter;
+
+    if (!force && isSameFilter && lastFetchedTickets && Date.now() - lastFetchedTickets < CACHE_TIME) return;
     try {
       dispatch(setTicketsLoading(true));
       const res = await getTicketsApi(params);
@@ -18,13 +21,13 @@ export const useTickets = () => {
       const result = res.data.data;
       const ticketsArray = Array.isArray(result) ? result : result?.tickets ?? [];
       const total = result?.total ?? ticketsArray.length;
-      dispatch(setTickets({ tickets: ticketsArray, total }));
+      dispatch(setTickets({ tickets: ticketsArray, total, filter: requestedFilter }));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to fetch tickets');
     } finally {
       dispatch(setTicketsLoading(false));
     }
-  }, [dispatch]);
+  }, [dispatch, lastFetchedFilter, lastFetchedTickets]);
 
   const loadMoreTickets = useCallback(async (params = {}) => {
     try {

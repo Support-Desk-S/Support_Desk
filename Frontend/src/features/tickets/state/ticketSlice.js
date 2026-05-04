@@ -13,6 +13,7 @@ const initialState = {
   sending: false,
   aiLoading: false,
   lastFetchedTickets: null,
+  lastFetchedFilter: null,
   fetchedTicketDetails: {},
   fetchedTicketMessages: {},
 };
@@ -25,6 +26,7 @@ const ticketSlice = createSlice({
       state.tickets = Array.isArray(action.payload.tickets) ? action.payload.tickets : [];
       state.total = action.payload.total ?? 0;
       state.lastFetchedTickets = Date.now();
+      state.lastFetchedFilter = action.payload.filter || 'all';
     },
     appendTickets: (state, action) => {
       const newTickets = Array.isArray(action.payload.tickets) ? action.payload.tickets : [];
