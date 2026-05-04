@@ -11,6 +11,7 @@ const FILTERS = ['all', 'open', 'assigned', 'resolved'];
 const TicketsPage = () => {
   const { tickets, loading, activeFilter, total, fetchTickets, changeFilter, loadMoreTickets } = useTickets();
   const [search, setSearch] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState('All Agents');
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const navigate = useNavigate();
@@ -34,12 +35,21 @@ const TicketsPage = () => {
   };
 
 
-  const filtered = tickets.filter(
-    (t) =>
+  const uniqueAgents = Array.from(
+    new Set(tickets.map((t) => t.assignedTo?.name).filter(Boolean))
+  );
+
+  const filtered = tickets.filter((t) => {
+    const matchesSearch =
       !search ||
       t.customerEmail?.toLowerCase().includes(search.toLowerCase()) ||
-      t.subject?.toLowerCase().includes(search.toLowerCase())
-  );
+      t.subject?.toLowerCase().includes(search.toLowerCase());
+
+    const matchesAgent =
+      selectedAgent === 'All Agents' || t.assignedTo?.name === selectedAgent;
+
+    return matchesSearch && matchesAgent;
+  });
 
   const columns = [
     {
@@ -148,15 +158,30 @@ const TicketsPage = () => {
           ))}
         </div>
 
-        <div className="relative max-w-xs w-full">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
-          <input
-            type="text"
-            placeholder="Search tickets..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-[#e5e7eb] rounded-[10px] focus:outline-none focus:border-[#111111]"
-          />
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <select
+            value={selectedAgent}
+            onChange={(e) => setSelectedAgent(e.target.value)}
+            className="text-sm border border-[#e5e7eb] rounded-[10px] px-3 py-2 bg-white focus:outline-none focus:border-[#111111] text-[#374151] min-w-[140px]"
+          >
+            <option value="All Agents">All Agents</option>
+            {uniqueAgents.map((agent) => (
+              <option key={agent} value={agent}>
+                {agent}
+              </option>
+            ))}
+          </select>
+
+          <div className="relative max-w-xs w-full">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
+            <input
+              type="text"
+              placeholder="Search tickets..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 text-sm border border-[#e5e7eb] rounded-[10px] focus:outline-none focus:border-[#111111]"
+            />
+          </div>
         </div>
       </div>
 
