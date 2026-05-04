@@ -943,7 +943,7 @@ X-SupportDesk-Tenant: your-tenant-id
               <div className="p-6 bg-black/[0.03] border border-black/8 rounded-2xl text-sm text-black/60 leading-relaxed">
                 <p className="font-bold text-black mb-2">Tenant URL Structure</p>
                 <code className="font-mono text-xs bg-black/8 px-3 py-1.5 rounded-lg block">
-                  https://your-domain.com/<strong>:tenantSlug</strong>/dashboard
+                  https://support-desk-one-lilac.vercel.app/<strong>:tenantSlug</strong>/dashboard
                 </code>
                 <p className="mt-4">Each client you onboard gets a unique <code className="font-mono bg-black/8 px-1 rounded text-xs">tenantSlug</code> — everything in SupportDesk is scoped to this. Agents log in under their tenant and can only see that tenant's data.</p>
               </div>
