@@ -17,7 +17,7 @@ const LandingPage = () => {
           <div className="w-9 h-9 md:w-10 md:h-10 bg-black rounded-full flex items-center justify-center">
             <Zap className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </div>
-          <span className="font-extrabold text-base md:text-lg tracking-tight">
+          <span className="font-semibold md:text-lg tracking-tight text-black">
             SupportDesk
           </span>
         </div>
@@ -42,13 +42,13 @@ const LandingPage = () => {
         <div className="hidden md:flex items-center gap-3">
           <button
             onClick={() => navigate("/auth")}
-            className="w-full py-2 rounded-lg border border-black/20 text-sm font-medium hover:bg-black/5 transition"
+            className="w-full px-4 py-2 rounded-lg border border-black/20 text-sm font-medium hover:bg-black/5 transition"
           >
             Sign In
           </button>
           <button
             onClick={() => navigate("/auth")}
-            className="px-5 py-2 bg-black text-white text-sm font-semibold rounded-lg hover:bg-black/80"
+            className="px-5 py-2 bg-black text-white text-sm font-semibold rounded-lg hover:bg-black/80 whitespace-nowrap"
           >
             Get Started
           </button>

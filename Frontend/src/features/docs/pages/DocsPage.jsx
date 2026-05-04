@@ -92,7 +92,7 @@ const DocsPage = () => {
           </div>
 
           {/* Hide extra text on mobile */}
-          <span className="truncate text-sm md:text-base text-black font-semibold">
+          <span className="truncate text-sm md:text-lg text-black font-semibold">
             SupportDesk
             <span className="hidden sm:inline text-black/30 font-normal">
               {" "} / Docs
