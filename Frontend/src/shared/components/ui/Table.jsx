@@ -34,11 +34,11 @@ const Table = ({
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="border-b border-[#e5e7eb]">
+          <tr className="border-b border-white/5 bg-[#0e0e11]/40">
             {columns.map((col) => (
               <th
                 key={col.key}
-                className="px-4 py-3 text-left text-xs font-semibold text-[#6b7280] uppercase tracking-wide whitespace-nowrap"
+                className="px-4.5 py-3 text-left text-[9px] font-bold text-zinc-400 uppercase tracking-wider whitespace-nowrap"
                 style={{ width: col.width }}
               >
                 {col.label}
@@ -52,12 +52,12 @@ const Table = ({
               key={row[rowKey] || idx}
               onClick={() => onRowClick?.(row)}
               className={[
-                'border-b border-[#e5e7eb] transition-colors duration-150',
-                onRowClick ? 'cursor-pointer hover:bg-[#f9fafb]' : 'hover:bg-[#f9fafb]',
+                'border-b border-white/5 transition-colors duration-200',
+                onRowClick ? 'cursor-pointer hover:bg-white/[0.02]' : 'hover:bg-white/[0.01]',
               ].join(' ')}
             >
               {columns.map((col) => (
-                <td key={col.key} className="px-4 py-3 text-sm text-[#111111] whitespace-nowrap">
+                <td key={col.key} className="px-4.5 py-3.5 text-[13px] text-zinc-200 whitespace-nowrap">
                   {col.render ? col.render(row[col.key], row) : row[col.key] ?? '—'}
                 </td>
               ))}

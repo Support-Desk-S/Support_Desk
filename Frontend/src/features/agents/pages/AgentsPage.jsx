@@ -39,7 +39,7 @@ const AgentsPage = () => {
       label: 'Online',
       width: '80px',
       render: (v) => (
-        <span className={`w-2 h-2 rounded-full inline-block ${v ? 'bg-[#10b981]' : 'bg-[#d1d5db]'}`} />
+        <span className={`w-1.5 h-1.5 rounded-full inline-block ${v ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)] animate-pulse' : 'bg-zinc-700'}`} />
       ),
     },
     {
@@ -64,7 +64,7 @@ const AgentsPage = () => {
                   if (!ok) return;
                   await approveUser(id, true);
                 }}
-                className="cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white text-[#111] hover:bg-[#f9fafb] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                className="cursor-pointer px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-[10px] border border-white/5 bg-[#09090b] text-white hover:bg-white/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
               >
                 {isRowLoading ? <Loader2 size={11} className="animate-spin" /> : null}
                 Approve
@@ -86,7 +86,7 @@ const AgentsPage = () => {
                   if (!ok) return;
                   await suspendUser(id);
                 }}
-                className="cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                className="cursor-pointer px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-[10px] border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/15 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
               >
                 {isRowLoading ? <Loader2 size={11} className="animate-spin" /> : null}
                 Suspend
@@ -106,7 +106,7 @@ const AgentsPage = () => {
                   if (!ok) return;
                   await updateRole(id, 'admin');
                 }}
-                className="cursor-pointer px-3 py-1 text-xs font-medium rounded-[8px] border border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                className="cursor-pointer px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-[10px] border border-yellow-500/20 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/15 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
               >
                 {isRowLoading ? <Loader2 size={11} className="animate-spin" /> : null}
                 Make Admin
@@ -121,16 +121,16 @@ const AgentsPage = () => {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-[#111111]">Agents</h1>
-        <p className="text-sm text-[#6b7280] mt-1">
+        <h1 className="text-2xl font-semibold text-white tracking-tight">Agents</h1>
+        <p className="text-sm text-zinc-400 mt-1">
           Manage team members, approve access, and update roles.
         </p>
       </div>
 
-      <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#e5e7eb]">
-          <h2 className="text-sm font-semibold text-[#111111]">Team Members</h2>
-          <p className="text-xs text-[#6b7280] mt-0.5">{users.length} member{users.length !== 1 ? 's' : ''}</p>
+      <div className="bg-[#09090b] border border-white/5 rounded-[12px] overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/5">
+          <h2 className="text-sm font-semibold text-white">Team Members</h2>
+          <p className="text-xs text-zinc-400 mt-0.5">{users.length} member{users.length !== 1 ? 's' : ''}</p>
         </div>
         <Table
           columns={columns}

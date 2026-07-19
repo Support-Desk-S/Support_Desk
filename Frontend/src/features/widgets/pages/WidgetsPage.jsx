@@ -39,16 +39,16 @@ const WidgetPreview = ({ widget }) => {
   const [loadingId, setLoadingId] = useState(null);
 
   return (
-    <div className="relative w-full h-40 bg-[#f8f9fa] rounded-[10px] border border-[#e5e7eb] overflow-hidden group">
+    <div className="relative w-full h-40 bg-[#0a0a0c] rounded-[12px] border border-white/5 overflow-hidden group">
       {/* Preview Label */}
-      <span className="absolute top-2 left-2 text-[10px] bg-black/50 text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
+      <span className="absolute top-2 left-2 text-[10px] bg-black/60 border border-white/10 text-white px-2 py-0.5 rounded font-semibold opacity-0 group-hover:opacity-100 transition">
         Preview
       </span>
 
       {/* Widget Box */}
       <div
         className={`absolute ${isBottom ? "bottom-2" : "top-2"
-          } ${isRight ? "right-2" : "left-2"} w-[200px] shadow-md border flex flex-col overflow-hidden transition-transform group-hover:scale-[1.02]`}
+          } ${isRight ? "right-2" : "left-2"} w-[200px] shadow-2xl border border-white/10 flex flex-col overflow-hidden transition-transform group-hover:scale-[1.02]`}
         style={{
           backgroundColor,
           borderRadius,
@@ -59,20 +59,20 @@ const WidgetPreview = ({ widget }) => {
           className="px-2.5 py-2 text-white text-[11px]"
           style={{ backgroundColor: primaryColor }}
         >
-          <p className="font-semibold truncate">{title}</p>
+          <p className="font-bold truncate">{title}</p>
           <p className="opacity-80 text-[10px] truncate">{subtitle}</p>
         </div>
 
         {/* Chat bubble */}
         <div className="p-2 text-[10px]">
-          <div className="bg-gray-100 px-2 py-1 rounded-md inline-block max-w-full break-words">
+          <div className="bg-white/5 border border-white/5 text-zinc-300 px-2 py-1 rounded-md inline-block max-w-full break-words">
             {welcomeMessage}
           </div>
         </div>
 
         {/* Input */}
-        <div className="border-t px-2 py-1">
-          <div className="h-5 bg-gray-100 rounded-full" />
+        <div className="border-t border-white/5 px-2 py-1">
+          <div className="h-5 bg-white/5 rounded-full" />
         </div>
       </div>
 
@@ -82,7 +82,7 @@ const WidgetPreview = ({ widget }) => {
           } ${isRight ? "right-2" : "left-2"}`}
       >
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg"
           style={{ backgroundColor: primaryColor }}
         >
           <MessageSquare size={14} />
@@ -139,12 +139,12 @@ const WidgetFormFields = ({ form, setForm }) => (
         ["backgroundColor", "Background"],
       ].map(([key, label]) => (
         <div key={key}>
-          <label className="text-xs font-medium mb-1 block">{label}</label>
+          <label className="text-xs font-semibold text-zinc-400 mb-1 block">{label}</label>
           <input
             type="color"
             value={form[key]}
             onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-            className="w-full h-10 rounded-lg border"
+            className="w-full h-10 rounded-lg border border-white/10 bg-[#0a0a0c] p-1 cursor-pointer"
           />
         </div>
       ))}
@@ -173,15 +173,18 @@ const WidgetFormFields = ({ form, setForm }) => (
     </div>
 
     {/* POSITION */}
-    <select
-      value={form.position}
-      onChange={(e) => setForm({ ...form, position: e.target.value })}
-      className="w-full h-10 px-3 border rounded-lg"
-    >
-      {["bottom-right", "bottom-left", "top-right", "top-left"].map((p) => (
-        <option key={p}>{p}</option>
-      ))}
-    </select>
+    <div>
+      <label className="text-xs font-semibold text-zinc-400 mb-1 block">Position</label>
+      <select
+        value={form.position}
+        onChange={(e) => setForm({ ...form, position: e.target.value })}
+        className="w-full h-10 px-3 border border-white/10 rounded-[10px] bg-[#0a0a0c] text-white focus:outline-none focus:border-white/30 cursor-pointer"
+      >
+        {["bottom-right", "bottom-left", "top-right", "top-left"].map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
+    </div>
 
     {/* CONTENT */}
     <Input
@@ -196,31 +199,36 @@ const WidgetFormFields = ({ form, setForm }) => (
       onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
     />
 
-    <textarea
-      value={form.welcomeMessage}
-      onChange={(e) => setForm({ ...form, welcomeMessage: e.target.value })}
-      className="w-full p-2 border rounded-lg text-sm"
-      rows={3}
-    />
+    <div>
+      <label className="text-xs font-semibold text-zinc-400 mb-1 block">Welcome Message</label>
+      <textarea
+        value={form.welcomeMessage}
+        onChange={(e) => setForm({ ...form, welcomeMessage: e.target.value })}
+        className="w-full p-3 border border-white/10 rounded-[10px] bg-[#0a0a0c] text-white placeholder-zinc-600 focus:outline-none focus:border-white/30 text-sm leading-relaxed"
+        rows={3}
+      />
+    </div>
 
     {/* TOGGLES */}
-    <div className="flex flex-col sm:flex-row gap-3 text-sm">
-      <label className="flex items-center gap-2">
+    <div className="flex flex-col sm:flex-row gap-4 text-sm text-zinc-300">
+      <label className="flex items-center gap-2 cursor-pointer">
         <input
           type="checkbox"
           checked={form.showAvatar}
           onChange={(e) => setForm({ ...form, showAvatar: e.target.checked })}
+          className="rounded border-white/10 bg-[#0a0a0c] text-white accent-white"
         />
         Show Avatar
       </label>
 
-      <label className="flex items-center gap-2">
+      <label className="flex items-center gap-2 cursor-pointer">
         <input
           type="checkbox"
           checked={form.showTimestamps}
           onChange={(e) =>
             setForm({ ...form, showTimestamps: e.target.checked })
           }
+          className="rounded border-white/10 bg-[#0a0a0c] text-white accent-white"
         />
         Show Timestamps
       </label>
@@ -229,11 +237,12 @@ const WidgetFormFields = ({ form, setForm }) => (
 
     {/* ACTIVE */}
     {"isActive" in form && (
-      <label className="flex items-center gap-2 text-sm">
+      <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
         <input
           type="checkbox"
           checked={form.isActive}
           onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+          className="rounded border-white/10 bg-[#0a0a0c] text-white accent-white"
         />
         Active Widget
       </label>
@@ -357,10 +366,10 @@ const WidgetsPage = () => {
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#111111]">
+          <h1 className="text-2xl font-semibold text-white tracking-tight">
             Chat Widgets
           </h1>
-          <p className="text-sm text-[#6b7280] mt-1">
+          <p className="text-sm text-zinc-400 mt-1">
             Create and manage embeddable chat widgets for your website.
           </p>
         </div>
@@ -380,13 +389,13 @@ const WidgetsPage = () => {
         </div>
       ) : widgets.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-14 h-14 bg-[#f3f4f6] rounded-2xl flex items-center justify-center mb-4">
-            <MessageSquare size={24} className="text-[#9ca3af]" />
+          <div className="w-14 h-14 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center mb-4">
+            <MessageSquare size={24} className="text-zinc-400" />
           </div>
-          <h3 className="text-sm font-semibold text-[#111111] mb-1">
+          <h3 className="text-sm font-semibold text-white mb-1">
             No widgets yet
           </h3>
-          <p className="text-sm text-[#6b7280] mb-4">
+          <p className="text-sm text-zinc-400 mb-4">
             Create your first chat widget to embed on your website.
           </p>
           <Button onClick={() => setIsCreateOpen(true)} size="sm">
@@ -398,7 +407,7 @@ const WidgetsPage = () => {
           {widgets.map((widget) => (
             <div
               key={widget._id}
-              className="bg-white border border-[#e5e7eb] rounded-[14px] p-4 sm:p-5 hover:shadow-md transition-all duration-200"
+              className="bg-[#09090b] border border-white/5 rounded-[12px] p-4 sm:p-5 hover:border-white/10 hover:shadow-2xl hover:shadow-black/50 transition-all duration-200"
             >
               {/* Preview */}
               <WidgetPreview widget={widget} />
@@ -407,11 +416,11 @@ const WidgetsPage = () => {
                 {/* Header */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold text-[#111111]">
+                    <h3 className="text-sm font-semibold text-white">
                       {widget.name}
                     </h3>
                     {widget.description && (
-                      <p className="text-xs text-[#6b7280] mt-0.5 line-clamp-1">
+                      <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
                         {widget.description}
                       </p>
                     )}
@@ -424,10 +433,10 @@ const WidgetsPage = () => {
 
                 {/* Meta Info */}
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="px-2 py-1 bg-[#f3f4f6] rounded-md text-xs text-[#6b7280]">
+                  <span className="px-2 py-1 bg-white/5 border border-white/5 rounded-md text-xs text-zinc-400">
                     {widget.position}
                   </span>
-                  <span className="px-2 py-1 bg-[#f3f4f6] rounded-md text-xs text-[#6b7280]">
+                  <span className="px-2 py-1 bg-white/5 border border-white/5 rounded-md text-xs text-zinc-400">
                     {widget.width}×{widget.height}px
                   </span>
                 </div>
@@ -445,7 +454,7 @@ const WidgetsPage = () => {
 
                   <button
                     onClick={() => openEdit(widget)}
-                    className="cursor-pointer p-1.5 rounded-lg text-[#9ca3af] hover:text-[#111111] hover:bg-[#f3f4f6] transition-colors"
+                    className="cursor-pointer p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-colors"
                     title="Edit this widget"
                   >
                     <Pencil size={14} />
@@ -462,7 +471,7 @@ const WidgetsPage = () => {
                     
                       await deleteWidget(widget._id);
                     }}
-                    className="cursor-pointer p-1.5 rounded-lg text-[#9ca3af] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-colors"
+                    className="cursor-pointer p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-colors"
                     title="Delete widget"
                   >
                     <Trash2 size={14} />
@@ -530,7 +539,7 @@ const WidgetsPage = () => {
             <Spinner />
           </div>
         ) : apiKeys.length === 0 ? (
-          <p className="text-sm text-[#6b7280] text-center py-6">
+          <p className="text-sm text-zinc-500 text-center py-6">
             No API keys found for this widget.
           </p>
         ) : (
@@ -538,13 +547,13 @@ const WidgetsPage = () => {
             {apiKeys.map((key) => (
               <div
                 key={key._id}
-                className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 bg-[#f8f9fa] rounded-[10px] border border-[#e5e7eb]"
+                className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 bg-white/5 rounded-[12px] border border-white/5"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-[#111111] mb-0.5">
+                  <p className="text-xs font-semibold text-white mb-0.5">
                     {key.name}
                   </p>
-                  <code className="text-xs text-[#6b7280] font-mono break-all whitespace-normal">
+                  <code className="text-xs text-zinc-400 font-mono break-all whitespace-normal">
                     {showKeys[key._id] ? key.key : "••••••••••••••••••••••••"}
                   </code>
                 </div>
@@ -554,7 +563,7 @@ const WidgetsPage = () => {
                     onClick={() =>
                       setShowKeys((s) => ({ ...s, [key._id]: !s[key._id] }))
                     }
-                    className="cursor-pointer"
+                    className="cursor-pointer text-zinc-400 hover:text-white"
                   >
                     {showKeys[key._id] ? (
                       <EyeOff size={14} />
@@ -567,7 +576,7 @@ const WidgetsPage = () => {
                     <button onClick={() => copyKey(key.key)}>
                       <Copy
                         size={14}
-                        className="cursor-pointer text-[#9ca3af] hover:text-[#111111] transition-colors"
+                        className="cursor-pointer text-zinc-500 hover:text-white transition-colors"
                       />
                     </button>
                   )}
@@ -576,21 +585,21 @@ const WidgetsPage = () => {
             ))}
           </div>
         )}
-        <div className="mt-4 p-4 bg-[#f8f9fa] rounded-[10px] border border-[#e5e7eb]">
+        <div className="mt-4 p-4 bg-white/5 rounded-[12px] border border-white/5">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-[#111111]">Embed Code</p>
+            <p className="text-xs font-semibold text-white">Embed Code</p>
             <button
               onClick={() =>
                 copyKey(
                   `<script src="${import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173"}/widget.js" data-api-key="${apiKeys[0]?.key || "YOUR_API_KEY"}" id="support-desk-widget"></script>`,
                 )
               }
-              className="cursor-pointer flex items-center gap-1.5 text-xs text-[#6b7280] hover:text-[#111111] transition-colors font-medium"
+              className="cursor-pointer flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors font-semibold"
             >
               <Copy size={12} /> Copy Code
             </button>
           </div>
-          <code className="text-[11px] text-[#6b7280] break-all font-mono block bg-white p-2.5 rounded border border-[#e5e7eb]">
+          <code className="text-[11px] text-zinc-400 break-all font-mono block bg-black/40 p-2.5 rounded-[8px] border border-white/5">
             {`<script 
                src="${import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173"}/widget.js"
                data-api-key="${apiKeys[0]?.key || "YOUR_API_KEY"}"

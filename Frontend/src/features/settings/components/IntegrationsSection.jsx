@@ -4,11 +4,10 @@ import { useSelector, useDispatch } from "react-redux";
 import { updateIntegrationsApi } from "../../tenant/services/tenant.service";
 import { setTenant } from "../../tenant/state/tenantSlice";
 import { useConfirm } from "../../../app/context/ConfirmContext";
+import Button from "../../../shared/components/ui/Button";
 
 const IntegrationsSection = () => {
-
   const { confirm } = useConfirm();
-
   const { currentTenant } = useSelector((state) => state.tenant);
   const dispatch = useDispatch();
 
@@ -143,34 +142,34 @@ const IntegrationsSection = () => {
   };
 
   return (
-    <div className="bg-(--color-bg-surface) border border-(--color-secondary) rounded-[14px] p-6 space-y-6">
+    <div className="bg-[#09090b] border border-white/5 rounded-[12px] p-6 space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <Plug size={18} className="text-(--color-primary)" />
+        <div className="flex items-center gap-2 text-white">
+          <Plug size={18} className="text-zinc-400" />
           <h2 className="text-sm font-semibold">API Integrations</h2>
         </div>
 
-        <button
+        <Button
           onClick={handleAddIntegration}
-          className="flex items-center justify-center gap-2 w-full sm:w-auto bg-(--color-primary) text-white px-3 py-1.5 rounded-lg text-sm hover:opacity-90 transition-opacity cursor-pointer"
+          className="w-full sm:w-auto flex items-center justify-center gap-2"
         >
           <Plus size={16} /> Add Integration
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <div className="text-red-500 text-sm bg-red-100/10 p-3 rounded-lg border border-red-500/20">
+        <div className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">
           {error}
         </div>
       )}
       {success && (
-        <div className="text-green-500 text-sm bg-green-100/10 p-3 rounded-lg border border-green-500/20">
+        <div className="text-emerald-400 text-sm bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
           {success}
         </div>
       )}
 
       {integrations.length === 0 ? (
-        <p className="text-sm text-(--color-text-secondary) text-center py-6">
+        <p className="text-sm text-zinc-400 text-center py-6">
           No integrations configured. Add one to enable custom API tools for AI.
         </p>
       ) : (
@@ -180,25 +179,25 @@ const IntegrationsSection = () => {
             return (
               <div
                 key={iIndex}
-                className="border border-(--color-secondary) rounded-[10px] overflow-hidden"
+                className="border border-white/5 rounded-[12px] overflow-hidden"
               >
                 <div
-                  className="flex justify-between items-center bg-(--color-bg-subtle) p-4 cursor-pointer hover:bg-(--color-bg-default) transition-colors"
+                  className="flex justify-between items-center bg-[#0c0c0e] p-4 cursor-pointer hover:bg-[#121214] transition-colors"
                   onClick={() => toggleExpand(iIndex)}
                 >
                   <div className="flex flex-col">
-                    <h3 className="font-medium text-sm">
+                    <h3 className="font-semibold text-sm text-white">
                       {integration.name || `Integration ${iIndex + 1}`}
                     </h3>
                     {integration.baseUrl && (
-                      <span className="text-xs text-(--color-text-secondary) mt-1">{integration.baseUrl}</span>
+                      <span className="text-xs text-zinc-400 mt-1 font-mono">{integration.baseUrl}</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); toggleExpand(iIndex); }}
-                      className="text-(--color-text-secondary) hover:text-(--color-primary) flex items-center gap-1 text-xs"
+                      className="text-zinc-400 hover:text-white flex items-center gap-1 text-xs cursor-pointer"
                     >
                       {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       <span className="hidden sm:inline">{isExpanded ? "Collapse" : "Edit"}</span>
@@ -217,7 +216,7 @@ const IntegrationsSection = () => {
 
                         handleRemoveIntegration(iIndex);
                       }}
-                      className="text-red-500 hover:bg-red-500/10 p-1.5 rounded cursor-pointer"
+                      className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 p-1.5 rounded cursor-pointer transition-colors"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -225,10 +224,10 @@ const IntegrationsSection = () => {
                 </div>
 
                 {isExpanded && (
-                  <div className="p-5 space-y-4 border-t border-(--color-secondary)">
+                  <div className="p-5 space-y-4 border-t border-white/5 bg-[#09090b]">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs mb-1 text-(--color-text-secondary)">
+                        <label className="block text-[10px] uppercase mb-1.5 font-semibold text-zinc-400">
                           Name
                         </label>
                         <input
@@ -237,11 +236,11 @@ const IntegrationsSection = () => {
                             handleIntegrationChange(iIndex, "name", e.target.value)
                           }
                           placeholder="e.g. Stripe API"
-                          className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-2 text-sm focus:outline-none focus:border-(--color-primary)"
+                          className="w-full bg-[#09090b] border border-white/5 text-white rounded-[10px] px-3.5 py-2.5 text-xs font-semibold placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs mb-1 text-(--color-text-secondary)">
+                        <label className="block text-[10px] uppercase mb-1.5 font-semibold text-zinc-400">
                           Base URL
                         </label>
                         <input
@@ -250,17 +249,17 @@ const IntegrationsSection = () => {
                             handleIntegrationChange(iIndex, "baseUrl", e.target.value)
                           }
                           placeholder="https://api.example.com"
-                          className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-2 text-sm focus:outline-none focus:border-(--color-primary)"
+                          className="w-full bg-[#09090b] border border-white/5 text-white rounded-[10px] px-3.5 py-2.5 text-xs font-semibold placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200 font-mono"
                         />
                       </div>
                     </div>
-
+ 
                     {/* Auth Settings */}
-                    <div className="bg-(--color-bg-default) p-4 rounded-lg border border-(--color-secondary) space-y-3">
-                      <h4 className="text-xs font-semibold">Authentication</h4>
+                    <div className="bg-white/5 p-4 rounded-[12px] border border-white/5 space-y-3">
+                      <h4 className="text-xs font-semibold text-white">Authentication</h4>
                       <div className="grid md:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                          <label className="block text-[10px] uppercase mb-1.5 font-semibold text-zinc-400">
                             Auth Type
                           </label>
                           <select
@@ -268,7 +267,7 @@ const IntegrationsSection = () => {
                             onChange={(e) =>
                               handleAuthChange(iIndex, "type", e.target.value)
                             }
-                            className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-1.5 text-sm"
+                            className="w-full bg-[#09090b] border border-white/5 text-white rounded-[10px] px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200 cursor-pointer"
                           >
                             <option value="none">None</option>
                             <option value="bearer">Bearer Token</option>
@@ -278,7 +277,7 @@ const IntegrationsSection = () => {
                         {integration.auth.type !== "none" && (
                           <>
                             <div>
-                              <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                              <label className="block text-[10px] uppercase mb-1.5 font-semibold text-zinc-400">
                                 Key
                               </label>
                               <input
@@ -292,12 +291,12 @@ const IntegrationsSection = () => {
                                     ? "Encrypted (Edit to change)"
                                     : "Enter secret key"
                                 }
-                                className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-1.5 text-sm"
+                                className="w-full bg-[#09090b] border border-white/5 text-white rounded-[10px] px-3.5 py-2.5 text-xs font-semibold placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200 font-mono"
                               />
                             </div>
                             {integration.auth.type === "apiKey" && (
                               <div>
-                                <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                                <label className="block text-[10px] uppercase mb-1.5 font-semibold text-zinc-400">
                                   Header Name
                                 </label>
                                 <input
@@ -310,7 +309,7 @@ const IntegrationsSection = () => {
                                     )
                                   }
                                   placeholder="e.g. x-api-key"
-                                  className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[8px] px-3 py-1.5 text-sm"
+                                  className="w-full bg-[#09090b] border border-white/5 text-white rounded-[10px] px-3.5 py-2.5 text-xs font-semibold placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200"
                                 />
                               </div>
                             )}
@@ -322,10 +321,10 @@ const IntegrationsSection = () => {
                     {/* Endpoints */}
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <h4 className="text-xs font-semibold">Endpoints (Tools)</h4>
+                        <h4 className="text-xs font-semibold text-white">Endpoints (Tools)</h4>
                         <button
                           onClick={() => handleAddEndpoint(iIndex)}
-                          className="text-xs text-(--color-primary) flex items-center gap-1 hover:underline"
+                          className="text-xs text-white hover:text-zinc-200 flex items-center gap-1 hover:underline cursor-pointer"
                         >
                           <Plus size={12} /> Add Endpoint
                         </button>
@@ -334,18 +333,18 @@ const IntegrationsSection = () => {
                       {integration.endpoints.map((endpoint, eIndex) => (
                         <div
                           key={eIndex}
-                          className="bg-(--color-bg-default) p-4 rounded-lg border border-(--color-secondary) space-y-3 relative"
+                          className="bg-[#09090b] p-4 rounded-[12px] border border-white/5 space-y-3 relative shadow-inner"
                         >
                           <button
                             onClick={() => handleRemoveEndpoint(iIndex, eIndex)}
-                            className="absolute top-3 right-3 text-(--color-text-secondary) hover:text-red-500"
+                            className="absolute top-3 right-3 text-zinc-500 hover:text-red-400 cursor-pointer"
                           >
                             <X size={14} />
                           </button>
 
                           <div className="grid md:grid-cols-3 gap-3 pr-6">
                             <div>
-                              <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                              <label className="block text-[10px] uppercase mb-1 text-zinc-400 font-semibold">
                                 Tool Name (Unique)
                               </label>
                               <input
@@ -359,11 +358,11 @@ const IntegrationsSection = () => {
                                   )
                                 }
                                 placeholder="e.g. getOrderStatus"
-                                className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
+                                className="w-full bg-[#09090b] border border-white/5 text-white rounded-[8px] px-3.5 py-2 text-xs placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200 font-semibold"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                              <label className="block text-[10px] uppercase mb-1 text-zinc-400 font-semibold">
                                 Method
                               </label>
                               <select
@@ -376,7 +375,7 @@ const IntegrationsSection = () => {
                                     e.target.value,
                                   )
                                 }
-                                className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
+                                className="w-full bg-[#09090b] border border-white/5 text-white rounded-[8px] px-3.5 py-2 text-xs focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200 cursor-pointer"
                               >
                                 <option value="GET">GET</option>
                                 <option value="POST">POST</option>
@@ -385,7 +384,7 @@ const IntegrationsSection = () => {
                               </select>
                             </div>
                             <div>
-                              <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                              <label className="block text-[10px] uppercase mb-1 text-zinc-400 font-semibold">
                                 Path
                               </label>
                               <input
@@ -399,13 +398,13 @@ const IntegrationsSection = () => {
                                   )
                                 }
                                 placeholder="e.g. /orders/:id"
-                                className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
+                                className="w-full bg-[#09090b] border border-white/5 text-white rounded-[8px] px-3.5 py-2 text-xs placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200 font-mono"
                               />
                             </div>
                           </div>
 
                           <div>
-                            <label className="block text-[10px] uppercase mb-1 text-(--color-text-secondary)">
+                            <label className="block text-[10px] uppercase mb-1 text-zinc-400 font-semibold">
                               Description for AI
                             </label>
                             <input
@@ -419,19 +418,19 @@ const IntegrationsSection = () => {
                                 )
                               }
                               placeholder="Explain when and how AI should use this tool..."
-                              className="w-full bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[6px] px-2 py-1 text-xs"
+                              className="w-full bg-[#09090b] border border-white/5 text-white rounded-[8px] px-3.5 py-2 text-xs placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200"
                             />
                           </div>
 
                           {/* Parameters */}
-                          <div className="pt-2 border-t border-(--color-secondary)">
+                          <div className="pt-3 border-t border-white/5">
                             <div className="flex justify-between items-center mb-2">
-                              <label className="block text-[10px] uppercase text-(--color-text-secondary)">
+                              <label className="block text-[10px] uppercase text-zinc-400 font-semibold">
                                 Parameters
                               </label>
                               <button
                                 onClick={() => handleAddParam(iIndex, eIndex)}
-                                className="text-[10px] text-(--color-primary) flex items-center hover:underline"
+                                className="text-[10px] text-white flex items-center hover:underline cursor-pointer"
                               >
                                 <Plus size={10} className="mr-1" /> Add Param
                               </button>
@@ -456,7 +455,7 @@ const IntegrationsSection = () => {
                                         )
                                       }
                                       placeholder="Param name"
-                                      className="flex-1 bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[4px] px-2 py-1 text-xs"
+                                      className="flex-1 bg-[#09090b] border border-white/5 text-white rounded-[8px] px-3.5 py-2 text-xs placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200"
                                     />
                                     <select
                                       value={param.type}
@@ -469,13 +468,13 @@ const IntegrationsSection = () => {
                                           e.target.value,
                                         )
                                       }
-                                      className="w-24 bg-(--color-bg-subtle) border border-(--color-secondary) rounded-[4px] px-1 py-1 text-xs"
+                                      className="w-24 bg-[#09090b] border border-white/5 text-white rounded-[8px] px-2 py-2 text-xs focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200 cursor-pointer"
                                     >
                                       <option value="string">String</option>
                                       <option value="number">Number</option>
                                       <option value="boolean">Boolean</option>
                                     </select>
-                                    <label className="flex items-center gap-1 text-[10px]">
+                                    <label className="flex items-center gap-1.5 text-[10px] text-zinc-400 cursor-pointer select-none">
                                       <input
                                         type="checkbox"
                                         checked={param.required}
@@ -488,6 +487,7 @@ const IntegrationsSection = () => {
                                             e.target.checked,
                                           )
                                         }
+                                        className="rounded border-white/5 bg-[#09090b] text-white accent-white"
                                       />
                                       Req.
                                     </label>
@@ -495,7 +495,7 @@ const IntegrationsSection = () => {
                                       onClick={() =>
                                         handleRemoveParam(iIndex, eIndex, pIndex)
                                       }
-                                      className="text-red-500 p-1"
+                                      className="text-zinc-500 hover:text-red-400 p-1 cursor-pointer transition-colors"
                                     >
                                       <Trash2 size={12} />
                                     </button>
@@ -513,14 +513,14 @@ const IntegrationsSection = () => {
             );
           })}
 
-          <div className="flex justify-end pt-4 border-t border-(--color-secondary)">
-            <button
+          <div className="flex justify-end pt-4 border-t border-white/5">
+            <Button
               onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 bg-(--color-primary) text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 cursor-pointer"
+              loading={isSaving}
+              size="md"
             >
-              <Save size={16} /> {isSaving ? "Saving..." : "Save Integrations"}
-            </button>
+              Save Integrations
+            </Button>
           </div>
         </div>
       )}

@@ -47,18 +47,18 @@ const AiContextPage = () => {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-[#111111]">AI Context</h1>
-        <p className="text-sm text-[#6b7280] mt-1">
+        <h1 className="text-2xl font-semibold text-white tracking-tight">AI Context</h1>
+        <p className="text-sm text-zinc-400 mt-1">
           Upload PDF documents to train your AI assistant with company-specific knowledge.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upload Zone */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[14px] p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Bot size={18} className="text-[#8b5cf6]" />
-            <h2 className="text-sm font-semibold text-[#111111]">Upload Knowledge Base</h2>
+        <div className="bg-[#09090b] border border-white/5 rounded-[12px] p-6">
+          <div className="flex items-center gap-2 mb-4 text-white">
+            <Bot size={18} className="text-zinc-400" />
+            <h2 className="text-sm font-semibold">Upload Knowledge Base</h2>
           </div>
 
           <div
@@ -66,16 +66,16 @@ const AiContextPage = () => {
             onDragLeave={() => setDragging(false)}
             onDrop={handleDrop}
             className={[
-              'border-2 border-dashed rounded-[12px] p-8 text-center transition-all duration-200 cursor-pointer',
-              dragging ? 'border-[#111111] bg-[#f3f4f6]' : 'border-[#e5e7eb] hover:border-[#d1d5db]',
+              'border-2 border-dashed rounded-[10px] p-8 text-center transition-all duration-200 cursor-pointer',
+              dragging ? 'border-white/30 bg-white/5' : 'border-white/10 hover:border-white/20 hover:bg-white/[0.01]',
             ].join(' ')}
             onClick={() => document.getElementById('ctx-file-input').click()}
           >
-            <Upload size={24} className="mx-auto mb-3 text-[#9ca3af]" />
-            <p className="text-sm font-medium text-[#111111] mb-1">
+            <Upload size={24} className="mx-auto mb-3 text-zinc-500" />
+            <p className="text-sm font-medium text-white mb-1">
               {file ? file.name : 'Drop a PDF here or click to browse'}
             </p>
-            <p className="text-xs text-[#6b7280]">Supports: PDF files only. Max 10MB.</p>
+            <p className="text-xs text-zinc-400">Supports: PDF files only. Max 10MB.</p>
             <input
               id="ctx-file-input"
               type="file"
@@ -86,21 +86,21 @@ const AiContextPage = () => {
           </div>
 
           {file && (
-            <div className="mt-4 flex items-center gap-3 p-3 bg-[#f8f9fa] rounded-[10px] border border-[#e5e7eb]">
-              <FileText size={18} className="text-[#8b5cf6] shrink-0" />
+            <div className="mt-4 flex items-center gap-3 p-3 bg-[#0a0a0c] rounded-[10px] border border-white/10">
+              <FileText size={18} className="text-zinc-400 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[#111111] truncate">{file.name}</p>
-                <p className="text-xs text-[#6b7280]">{(file.size / 1024).toFixed(0)} KB</p>
+                <p className="text-sm font-medium text-white truncate">{file.name}</p>
+                <p className="text-xs text-zinc-400">{(file.size / 1024).toFixed(0)} KB</p>
               </div>
-              <Button onClick={handleUpload} loading={uploading} size="sm">
+              <Button onClick={handleUpload} loading={uploading} size="sm" variant="primary">
                 Upload
               </Button>
             </div>
           )}
 
-          <div className="mt-5 p-4 bg-[#ede9fe] rounded-[10px]">
-            <p className="text-xs font-semibold text-[#5b21b6] mb-1">How it works</p>
-            <p className="text-xs text-[#6b7280]">
+          <div className="mt-5 p-4 bg-white/5 border border-white/5 rounded-[10px]">
+            <p className="text-xs font-semibold text-white mb-1">How it works</p>
+            <p className="text-xs text-zinc-400 leading-relaxed">
               Uploaded PDFs are split into chunks, embedded via MistralAI, and indexed in Pinecone.
               The AI will use this knowledge to answer customer queries automatically.
             </p>
@@ -108,25 +108,25 @@ const AiContextPage = () => {
         </div>
 
         {/* Indexed Files */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[14px] p-6">
-          <h2 className="text-sm font-semibold text-[#111111] mb-4">
+        <div className="bg-[#09090b] border border-white/5 rounded-[12px] p-6">
+          <h2 className="text-sm font-semibold text-white mb-4">
             Indexed Documents ({uploadedFiles.length})
           </h2>
 
           {uploadedFiles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <FileText size={28} className="text-[#d1d5db] mb-3" />
-              <p className="text-sm text-[#6b7280]">No documents indexed yet.</p>
-              <p className="text-xs text-[#9ca3af]">Upload a PDF to get started.</p>
+              <FileText size={28} className="text-zinc-600 mb-3" />
+              <p className="text-sm text-zinc-400">No documents indexed yet.</p>
+              <p className="text-xs text-zinc-500 mt-1">Upload a PDF to get started.</p>
             </div>
           ) : (
             <div className="space-y-2">
               {uploadedFiles.map((ctx, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-[10px] border border-[#e5e7eb]">
-                  <CheckCircle2 size={16} className="text-[#10b981] shrink-0" />
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-[10px] border border-white/5 bg-[#0a0a0c]">
+                  <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-[#111111] font-medium truncate">{ctx.url || `Document ${idx + 1}`}</p>
-                    <p className="text-xs text-[#9ca3af]">Indexed in Pinecone</p>
+                    <p className="text-xs text-white font-medium truncate">{ctx.url || `Document ${idx + 1}`}</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">Indexed in Pinecone</p>
                   </div>
                 </div>
               ))}

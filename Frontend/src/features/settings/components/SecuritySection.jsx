@@ -2,6 +2,7 @@ import { Shield } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../auth/hooks/useAuth";
+import Button from "../../../shared/components/ui/Button";
 
 const SecuritySection = () => {
   const { updatePassword, loading } = useAuth();
@@ -38,9 +39,9 @@ const SecuritySection = () => {
   };
 
   return (
-    <div className="bg-(--color-bg-surface) border border-(--color-secondary) rounded-[14px] p-6 max-w-4xl">
-      <div className="flex items-center gap-2 mb-5">
-        <Shield size={16} />
+    <div className="bg-[#09090b] border border-white/5 rounded-[12px] p-6 max-w-4xl">
+      <div className="flex items-center gap-2 mb-5 text-white">
+        <Shield size={16} className="text-zinc-400" />
         <h2 className="text-sm font-semibold">Change Password</h2>
       </div>
 
@@ -52,7 +53,7 @@ const SecuritySection = () => {
           onChange={(e) =>
             setForm({ ...form, oldPassword: e.target.value })
           }
-          className="w-full border border-(--color-secondary) rounded-[10px] px-3 py-2 text-sm"
+          className="w-full border border-white/5 bg-[#09090b] text-white rounded-[10px] px-3.5 py-2.5 text-xs font-semibold placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200"
         />
 
         <input
@@ -62,27 +63,28 @@ const SecuritySection = () => {
           onChange={(e) =>
             setForm({ ...form, newPassword: e.target.value })
           }
-          className="w-full border border-(--color-secondary) rounded-[10px] px-3 py-2 text-sm"
+          className="w-full border border-white/5 bg-[#09090b] text-white rounded-[10px] px-3.5 py-2.5 text-xs font-semibold placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200"
         />
 
         <input
           type="password"
-          placeholder="Confirm Password"
+          placeholder="Confirm New Password"
           value={form.confirmPassword}
           onChange={(e) =>
             setForm({ ...form, confirmPassword: e.target.value })
           }
-          className="w-full border border-(--color-secondary) rounded-[10px] px-3 py-2 text-sm md:col-span-2"
+          className="w-full border border-white/5 bg-[#09090b] text-white rounded-[10px] px-3.5 py-2.5 text-xs font-semibold placeholder-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 focus:bg-[#0c0c0e] transition-all duration-200 md:col-span-2"
         />
       </div>
 
-      <button
+      <Button
         onClick={handleUpdate}
-        disabled={loading}
-        className="mt-5 bg-(--color-primary) text-(--color-primary-fg) cursor-pointer px-4 py-2 rounded-[10px] text-sm"
+        loading={loading}
+        className="mt-5"
+        size="sm"
       >
-        {loading ? "Updating..." : "Update Password"}
-      </button>
+        Update Password
+      </Button>
     </div>
   );
 };

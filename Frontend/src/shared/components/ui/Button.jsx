@@ -1,17 +1,17 @@
 import React from 'react';
 
 const variantClasses = {
-  primary: 'bg-[#111111] text-white border border-[#111111] hover:bg-[#2d2d2d] hover:border-[#2d2d2d]',
-  secondary: 'bg-white text-[#111111] border border-[#e5e7eb] hover:bg-[#f9fafb]',
-  ghost: 'bg-transparent text-[#6b7280] hover:bg-[#f3f4f6] border border-transparent',
-  danger: 'bg-[#ef4444] text-white border border-[#ef4444] hover:bg-[#dc2626]',
-  outline: 'bg-transparent text-[#111111] border border-[#111111] hover:bg-[#f9fafb]',
+  primary: 'bg-white text-black border border-white hover:bg-zinc-100 hover:shadow-[0_2px_12px_rgba(255,255,255,0.08)] active:scale-[0.98]',
+  secondary: 'bg-[#09090b] text-zinc-200 border border-white/5 hover:bg-[#161619] hover:border-white/15 hover:text-white active:scale-[0.98] shadow-sm',
+  ghost: 'bg-transparent text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent active:scale-[0.98]',
+  danger: 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/15 active:scale-[0.98]',
+  outline: 'bg-transparent text-white border border-white/10 hover:bg-white/5 hover:border-white/20 active:scale-[0.98]',
 };
 
 const sizeClasses = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-2.5 text-sm',
+  sm: 'px-3.5 py-1.5 text-xs font-semibold tracking-wide',
+  md: 'px-4.5 py-2 text-sm font-semibold tracking-wide',
+  lg: 'px-6 py-2.5 text-sm font-bold tracking-wide',
 };
 
 const Button = ({
@@ -34,7 +34,7 @@ const Button = ({
       className={[
         'inline-flex items-center justify-center gap-2 font-medium rounded-[10px]',
         'transition-all duration-200',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111111]',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
         disabled && !loading ? 'opacity-50 cursor-not-allowed' : '',
         loading ? 'opacity-70 cursor-default' : '',
         !disabled && !loading ? 'cursor-pointer' : '',

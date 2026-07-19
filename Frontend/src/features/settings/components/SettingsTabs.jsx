@@ -2,16 +2,16 @@ const tabs = ["General", "Security", "Integrations"];
 
 const SettingsTabs = ({ activeTab, setActiveTab }) => {
   return (
-    <div className="flex gap-1 p-1 rounded-[10px] bg-(--color-bg-subtle) w-fit mb-6">
+    <div className="flex gap-1 bg-white/5 border border-white/5 rounded-[10px] p-1 shadow-sm w-fit mb-6">
       {tabs.map((tab) => (
         <button
           key={tab}
           onClick={() => setActiveTab(tab)}
           className={[
-            "px-3 py-1.5 rounded-lg cursor-pointer text-sm font-medium transition-all duration-150",
+            "px-3.5 py-1.5 rounded-[8px] cursor-pointer text-xs font-bold uppercase tracking-wider transition-all duration-200",
             activeTab === tab
-              ? "bg-(--color-bg-surface) text-(--color-text-primary) shadow-sm"
-              : "text-(--color-text-secondary) hover:text-(--color-text-primary)",
+              ? "bg-white text-black font-extrabold shadow-sm"
+              : "text-zinc-400 hover:text-white hover:bg-white/5",
           ].join(" ")}
         >
           {tab}

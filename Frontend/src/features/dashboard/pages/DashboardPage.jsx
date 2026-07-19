@@ -5,30 +5,33 @@ import { useStats } from '../hooks/useStats';
 import { useTickets } from '../../tickets/hooks/useTickets';
 import Badge from '../../../shared/components/ui/Badge';
 import Spinner from '../../../shared/components/ui/Spinner';
+import Table from '../../../shared/components/ui/Table';
+import Button from '../../../shared/components/ui/Button';
 import { TicketCheck, Users, CheckCircle2, Clock, TrendingUp, Bot } from 'lucide-react';
 
 const StatCard = ({ icon: Icon, label, value, trend, color = 'default' }) => {
   const colorMap = {
-    default: 'text-[#111111]',
-    amber: 'text-[#f59e0b]',
-    blue: 'text-[#3b82f6]',
-    green: 'text-[#10b981]',
+    default: 'text-white bg-white/5 border-white/5',
+    amber: 'text-amber-400 bg-amber-400/5 border-amber-400/10 shadow-[0_0_12px_rgba(245,158,11,0.02)]',
+    blue: 'text-blue-400 bg-blue-400/5 border-blue-400/10 shadow-[0_0_12px_rgba(59,130,246,0.02)]',
+    green: 'text-emerald-400 bg-emerald-400/5 border-emerald-400/10 shadow-[0_0_12px_rgba(16,185,129,0.02)]',
   };
   return (
-    <div className="bg-white border border-[#e5e7eb] rounded-[14px] p-5 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-start justify-between mb-4">
-        <div className={`w-10 h-10 rounded-[10px] bg-[#f3f4f6] flex items-center justify-center ${colorMap[color]}`}>
-          <Icon size={18} strokeWidth={1.8} />
+    <div className="bg-[#09090b] border border-white/5 rounded-[12px] p-5 hover:border-white/10 hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="flex items-start justify-between mb-4 relative z-10">
+        <div className={`w-9 h-9 rounded-[10px] border flex items-center justify-center ${colorMap[color]}`}>
+          <Icon size={16} strokeWidth={2} />
         </div>
         {trend !== undefined && (
-          <span className="flex items-center gap-1 text-xs text-[#10b981] font-medium">
-            <TrendingUp size={12} />
+          <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-bold tracking-wider">
+            <TrendingUp size={11} />
             {trend}%
           </span>
         )}
       </div>
-      <p className="text-2xl font-semibold text-[#111111] mb-1">{value ?? '—'}</p>
-      <p className="text-sm text-[#6b7280]">{label}</p>
+      <p className="text-3xl font-extrabold text-white tracking-tight mb-1 relative z-10 leading-none">{value ?? '—'}</p>
+      <p className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider relative z-10">{label}</p>
     </div>
   );
 };
@@ -54,21 +57,54 @@ const DashboardPage = () => {
     setLoadingMore(false);
   };
 
+  const columns = [
+    {
+      key: 'customerEmail',
+      label: 'Customer',
+      render: (v) => <span className="text-zinc-200 font-medium">{v}</span>,
+    },
+    {
+      key: 'subject',
+      label: 'Subject',
+      render: (v) => <span className="text-zinc-400 truncate max-w-[300px] block" title={v}>{v}</span>,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      width: '120px',
+      render: (v) => <Badge variant={statusVariantMap[v] || 'default'} dot>{v}</Badge>,
+    },
+    {
+      key: 'createdAt',
+      label: 'Created',
+      width: '130px',
+      render: (v) => (
+        <span className="text-zinc-400 text-sm">
+          {new Date(v).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <DashboardLayout>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-[#111111]">
+        <h1 className="text-2xl font-semibold text-white tracking-tight">
           Welcome back, {user?.name?.split(' ')[0]} 👋
         </h1>
-        <p className="text-sm text-[#6b7280] mt-1">
+        <p className="text-sm text-zinc-400 mt-1">
           Here's what's happening in your support workspace today.
         </p>
       </div>
 
       {/* Stats */}
       {statsLoading ? (
-        <div className="flex items-center gap-2 py-8 text-[#6b7280]">
+        <div className="flex items-center gap-2 py-8 text-zinc-400">
           <Spinner size="sm" /> Loading stats...
         </div>
       ) : (
@@ -100,61 +136,31 @@ const DashboardPage = () => {
       )}
 
       {/* Recent Tickets */}
-      <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#e5e7eb] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#111111]">Recent Tickets</h2>
-          <span className="text-xs text-[#6b7280]">{tickets.length} shown</span>
+      <div className="bg-[#09090b] border border-white/5 rounded-[12px] overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-[#0b0b0e]/30">
+          <h2 className="text-xs font-bold text-white uppercase tracking-wider">Recent Tickets</h2>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{tickets.length} shown</span>
         </div>
 
-        {ticketsLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Spinner />
-          </div>
-        ) : tickets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-[#6b7280]">
-            <TicketCheck size={32} className="mb-3 opacity-40" />
-            <p className="text-sm">No tickets yet</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-[#e5e7eb]">
-                  {['Customer', 'Subject', 'Status', 'Created'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#6b7280] uppercase tracking-wide">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {tickets.map((ticket) => (
-                  <tr key={ticket._id} className="border-b border-[#e5e7eb] hover:bg-[#f9fafb] transition-colors">
-                    <td className="px-4 py-3 text-sm text-[#111111]">{ticket.customerEmail}</td>
-                    <td className="px-4 py-3 text-sm text-[#6b7280] max-w-[250px] truncate">{ticket.subject}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={statusVariantMap[ticket.status] || 'default'} dot>
-                        {ticket.status}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-[#6b7280]">
-                      {new Date(ticket.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {tickets.length < total && (
-              <div className="p-4 border-t border-[#e5e7eb] flex justify-center bg-white">
-                <button
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                  className="px-4 py-2 text-sm font-medium text-[#111111] bg-white border border-[#e5e7eb] rounded-[8px] hover:bg-[#f9fafb] disabled:opacity-50 transition-colors"
-                >
-                  {loadingMore ? 'Loading...' : 'Load More Tickets'}
-                </button>
-              </div>
-            )}
+        <Table
+          columns={columns}
+          data={tickets}
+          loading={ticketsLoading}
+          emptyTitle="No tickets found"
+          emptyDescription="Tickets created by customers will appear here."
+        />
+
+        {!ticketsLoading && tickets.length < total && (
+          <div className="p-4 border-t border-white/5 flex justify-center bg-transparent">
+            <Button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              variant="secondary"
+              size="sm"
+              className="w-full max-w-[200px]"
+            >
+              {loadingMore ? 'Loading...' : 'Load More Tickets'}
+            </Button>
           </div>
         )}
       </div>

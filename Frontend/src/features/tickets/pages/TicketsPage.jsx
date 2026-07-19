@@ -4,6 +4,7 @@ import DashboardLayout from '../../../shared/components/layout/DashboardLayout';
 import { useTickets } from '../hooks/useTickets';
 import Badge from '../../../shared/components/ui/Badge';
 import Table from '../../../shared/components/ui/Table';
+import Button from '../../../shared/components/ui/Button';
 import { Search, Plus } from 'lucide-react';
 
 const FILTERS = ['all', 'open', 'assigned', 'resolved'];
@@ -57,14 +58,14 @@ const TicketsPage = () => {
       label: 'Customer',
       width: '200px',
       render: (v) => (
-        <span className="text-sm text-[#111111] font-medium truncate block max-w-[180px]">{v}</span>
+        <span className="text-sm text-zinc-200 font-medium truncate block max-w-[180px]">{v}</span>
       ),
     },
     {
       key: 'subject',
       label: 'Subject',
       render: (v) => (
-        <span className="truncate max-w-[300px] block text-sm text-[#374151]" title={v}>
+        <span className="truncate max-w-[300px] block text-sm text-zinc-400" title={v}>
           {v}
         </span>
       ),
@@ -82,15 +83,15 @@ const TicketsPage = () => {
       render: (v) =>
         v ? (
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-[#e5e7eb] flex items-center justify-center shrink-0">
-              <span className="text-[10px] font-bold text-[#374151]">
+            <div className="w-6 h-6 rounded-full bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
+              <span className="text-[10px] font-bold text-white">
                 {v.name?.[0]?.toUpperCase() || 'A'}
               </span>
             </div>
-            <span className="text-sm text-[#111111] truncate">{v.name || 'Agent'}</span>
+            <span className="text-sm text-zinc-200 truncate">{v.name || 'Agent'}</span>
           </div>
         ) : (
-          <span className="text-sm text-[#9ca3af] italic">Unassigned</span>
+          <span className="text-sm text-zinc-500 italic">Unassigned</span>
         ),
     },
     {
@@ -98,7 +99,7 @@ const TicketsPage = () => {
       label: 'Created',
       width: '130px',
       render: (v) => (
-        <span className="text-sm text-[#6b7280]">
+        <span className="text-sm text-zinc-400">
           {new Date(v).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -117,7 +118,7 @@ const TicketsPage = () => {
             e.stopPropagation();
             navigate(`/${tenantSlug}/tickets/${id}`);
           }}
-          className="px-3 py-1 text-xs font-medium rounded-[8px] border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] text-[#111111] transition-colors cursor-pointer"
+          className="px-3 py-1 text-xs font-semibold rounded-[8px] border border-white/10 bg-[#0a0a0c] hover:bg-white/5 text-white transition-all cursor-pointer"
         >
           Open →
         </button>
@@ -129,28 +130,28 @@ const TicketsPage = () => {
     <DashboardLayout>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#111111]">Tickets</h1>
-          <p className="text-sm text-[#6b7280] mt-1">
+          <h1 className="text-2xl font-semibold text-white tracking-tight">Tickets</h1>
+          <p className="text-sm text-zinc-400 mt-1">
             Manage all customer support tickets across your workspace.
           </p>
         </div>
-        <div className="text-sm text-[#6b7280] font-medium">
+        <div className="text-sm text-zinc-400 font-medium">
           {filtered.length} ticket{filtered.length !== 1 ? 's' : ''}
         </div>
       </div>
 
       {/* Filters + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
-        <div className="flex gap-1 bg-[#f3f4f6] rounded-[10px] p-1">
+        <div className="flex gap-1 bg-white/5 border border-white/5 rounded-[10px] p-1 shadow-sm">
           {FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => changeFilter(f)}
               className={[
-                'px-3 py-1.5 rounded-[8px] text-sm font-medium capitalize transition-all duration-150 cursor-pointer',
+                'px-3.5 py-1.5 rounded-[8px] text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer',
                 activeFilter === f
-                  ? 'bg-white text-[#111111] shadow-sm'
-                  : 'text-[#6b7280] hover:text-[#111111]',
+                  ? 'bg-white text-black shadow-sm font-extrabold'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/5',
               ].join(' ')}
             >
               {f}
@@ -162,7 +163,7 @@ const TicketsPage = () => {
           <select
             value={selectedAgent}
             onChange={(e) => setSelectedAgent(e.target.value)}
-            className="text-sm border border-[#e5e7eb] rounded-[10px] px-3 py-2 bg-white focus:outline-none focus:border-[#111111] text-[#374151] min-w-[140px]"
+            className="text-xs font-semibold uppercase tracking-wider border border-white/5 rounded-[10px] px-3.5 py-2.5 bg-[#09090b] text-zinc-300 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 min-w-[140px] cursor-pointer transition-all duration-200"
           >
             <option value="All Agents">All Agents</option>
             {uniqueAgents.map((agent) => (
@@ -173,20 +174,20 @@ const TicketsPage = () => {
           </select>
 
           <div className="relative max-w-xs w-full">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
+            <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
               type="text"
               placeholder="Search tickets..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-sm border border-[#e5e7eb] rounded-[10px] focus:outline-none focus:border-[#111111]"
+              className="w-full pl-9 pr-3.5 py-2.5 text-xs font-semibold uppercase tracking-wider border border-white/5 rounded-[10px] bg-[#09090b] text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/5 transition-all duration-200"
             />
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden">
+      <div className="bg-[#09090b] border border-white/5 rounded-[12px] overflow-hidden">
         <Table
           columns={columns}
           data={filtered}
@@ -198,14 +199,16 @@ const TicketsPage = () => {
           }
         />
         {tickets.length < total && (
-          <div className="p-4 border-t border-[#e5e7eb] flex justify-center bg-white">
-            <button
+          <div className="p-4 border-t border-white/5 flex justify-center bg-transparent">
+            <Button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="px-4 py-2 text-sm font-medium text-[#111111] bg-white border border-[#e5e7eb] rounded-[8px] hover:bg-[#f9fafb] disabled:opacity-50 transition-colors"
+              variant="secondary"
+              size="sm"
+              className="w-full max-w-[200px]"
             >
               {loadingMore ? 'Loading...' : 'Load More Tickets'}
-            </button>
+            </Button>
           </div>
         )}
       </div>

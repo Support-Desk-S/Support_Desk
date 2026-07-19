@@ -47,8 +47,8 @@ const RegisterForm = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <h2 className="text-xl font-semibold text-[#111111]">Create workspace</h2>
-        <p className="text-sm text-[#6b7280] mt-0.5">Set up your company on SupportDesk</p>
+        <h2 className="text-xl font-semibold text-white tracking-tight">Create workspace</h2>
+        <p className="text-sm text-zinc-400 mt-1">Set up your company on SupportDesk</p>
       </div>
 
       {/* Step indicator */}
@@ -56,28 +56,28 @@ const RegisterForm = () => {
         {[0, 1].map((s) => (
           <div
             key={s}
-            className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-[#111111]" : "bg-[#e5e7eb]"}`}
+            className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-white" : "bg-white/10"}`}
           />
         ))}
       </div>
-      <p className="text-xs text-[#9ca3af]">Step {step + 1} of 2 — {step === 0 ? "Company info" : "Admin account"}</p>
+      <p className="text-xs text-zinc-400 font-medium">Step {step + 1} of 2 — {step === 0 ? "Company info" : "Admin account"}</p>
 
       {/* Fields */}
       {currentFields.map(({ key, label, type, icon: Icon, placeholder, hint }) => (
         <div key={key}>
-          <label className="text-sm font-medium text-[#111111] block mb-1.5">{label}</label>
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block mb-1.5">{label}</label>
           <div className="relative">
-            <Icon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
+            <Icon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
               type={type}
               placeholder={placeholder}
               value={form[key]}
               onChange={set(key)}
               required
-              className="w-full h-10 pl-8 pr-3 text-sm border border-[#e5e7eb] rounded-[10px] focus:outline-none focus:border-[#111111] transition-colors placeholder:text-[#9ca3af]"
+              className="w-full h-10 pl-8 pr-3 text-sm bg-[#0a0a0c] text-white border border-white/10 rounded-[10px] focus:outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 font-medium"
             />
           </div>
-          {hint && <p className="text-xs text-[#9ca3af] mt-1">{hint}</p>}
+          {hint && <p className="text-xs text-zinc-500 mt-1.5 font-mono">{hint}</p>}
         </div>
       ))}
 
@@ -87,7 +87,7 @@ const RegisterForm = () => {
           <button
             type="button"
             onClick={() => setStep(0)}
-            className="flex-1 h-10 border border-[#e5e7eb] text-[#111111] text-sm font-medium rounded-[10px] flex items-center justify-center gap-1.5 hover:bg-[#f9fafb] transition-colors"
+            className="flex-1 h-10 border border-white/10 text-white text-sm font-semibold rounded-[10px] flex items-center justify-center gap-1.5 hover:bg-white/5 transition-all cursor-pointer"
           >
             <ArrowLeft size={14} /> Back
           </button>
@@ -95,7 +95,7 @@ const RegisterForm = () => {
         <button
           type="submit"
           disabled={!isCurrentValid || loading}
-          className="flex-1 h-10 bg-[#111111] text-white text-sm font-medium rounded-[10px] flex items-center justify-center gap-1.5 hover:bg-[#2d2d2d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 h-10 bg-white text-black text-sm font-semibold rounded-[10px] flex items-center justify-center gap-1.5 hover:bg-zinc-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : null}
           {loading ? "Creating..." : step < 1 ? (<>Next <ArrowRight size={14} /></>) : "Create Workspace"}
