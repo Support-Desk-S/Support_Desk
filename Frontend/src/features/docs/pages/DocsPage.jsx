@@ -175,7 +175,7 @@ const DocsPage = () => {
                 <BookOpen className="w-3.5 h-3.5" /> Introduction
               </div>
               <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-4 text-white">Welcome to SupportDesk</h1>
-              <p className="text-sm md:text-base text-zinc-400 leading-relaxed mb-8">
+              <p className="text-sm text-gray-400 leading-relaxed mb-8">
                 SupportDesk is a multi-tenant AI customer support platform that lets you deploy an AI agent on any website, resolve the majority of customer queries without human intervention, and seamlessly escalate complex cases to real agents — with full context.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
