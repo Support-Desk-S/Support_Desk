@@ -6,7 +6,7 @@ import { decrypt } from '../utils/encryption.js';
 
 const mistralChat = new ChatMistralAI({
   apiKey: config.MISTRAL_KEY,
-  model: 'mistral-large-latest',
+    model: 'mistral-small-latest',
   temperature: 0.1, // Low temperature for deterministic JSON output
 });
 
